@@ -102,26 +102,7 @@ class tapeimgrGUI(tk.Frame):
             config.readyToStart = True
 
             # Disable start button
-            # TODO: enable once worker has finished its job (how? perhaps loop that periodically
-            # checks config.finishedTape?)
             self.start_button.config(state='disabled')
-
-            # Wait until config.finishedTape is True
-            #while not config.finishedTape:
-            #    time.sleep(2)
-   
-            # This doesn't work, perhaps this wolud be better:
-            # https://stackoverflow.com/questions/46788776/update-tkinter-widget-from-main-thread-after-worker-thread-completes 
-            
-            # Or this:
-
-            # https://stackoverflow.com/questions/25295863/how-to-quit-current-program-and-recreate-the-original-gui-also-creating-a-secre
-
-            # Enable start button again
-            #self.start_button.config(state='normal')
-
-        
-        print(config.readyToStart)
 
     def setupLogging(self, handler):
         """Set up logging-related settings"""
