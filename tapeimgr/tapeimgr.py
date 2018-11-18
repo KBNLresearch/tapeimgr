@@ -52,20 +52,8 @@ class tapeimgrGUI(tk.Frame):
         self.build_gui()
         
     def on_quit(self, event=None):
-        """Wait until the disc that is currently being pocessed has
-        finished, and quit (batch can be resumed by opening it in the File dialog)
-        """
-        config.quitFlag = True
-        self.bExit.config(state='disabled')
-        self.bFinalise.config(state='disabled')
-        msg = 'User pressed Exit, quitting after current disc has been processed'
-        tkMessageBox.showinfo("Info", msg)
-        if not config.readyToStart:
-            # Wait 2 seconds to avoid race condition
-            time.sleep(2)
-            msg = 'Quitting because user pressed Exit, click OK to exit'
-            tkMessageBox.showinfo("Exit", msg)
-            os._exit(0)
+        """Quit tapeimgr"""
+        os._exit(0)
 
     def on_submit(self, event=None):
         """fetch and validate entered input"""
@@ -101,8 +89,9 @@ class tapeimgrGUI(tk.Frame):
             # This flag tells worker module tape extraction can start 
             config.readyToStart = True
 
-            # Disable start button
+            # Disable start and exit buttons
             self.start_button.config(state='disabled')
+            self.quit_button.config(state='disabled')
 
     def setupLogging(self, handler):
         """Set up logging-related settings"""
@@ -138,14 +127,14 @@ class tapeimgrGUI(tk.Frame):
 
     def build_gui(self):
         """Build the GUI"""
-                
+    
         self.root.title('tapeimgr')
         self.root.option_add('*tearOff', 'FALSE')
         self.grid(column=0, row=0, sticky='w')
-        self.grid_columnconfigure(0, weight=2, pad=3)
-        self.grid_columnconfigure(1, weight=4, pad=3)
-        self.grid_columnconfigure(2, weight=0, pad=3)
-        self.grid_columnconfigure(3, weight=0, pad=3)
+        self.grid_columnconfigure(0, weight=0, pad=0)
+        self.grid_columnconfigure(1, weight=0, pad=0)
+        self.grid_columnconfigure(2, weight=0, pad=0)
+        self.grid_columnconfigure(3, weight=0, pad=0)
 
         # Entry elements
         ttk.Separator(self, orient='horizontal').grid(column=0, row=0, columnspan=4, sticky='ew')
@@ -173,7 +162,7 @@ class tapeimgrGUI(tk.Frame):
         self.initBlocksize_entry.insert(tk.END, config.initBlocksize)
         self.initBlocksize_entry.grid(column=1, row=7, sticky='w')
         self.decreaseBSButton = tk.Button(self, text='-', command=self.decreaseBlocksize, width=1)
-        self.decreaseBSButton.grid(column=2, row=7, sticky='w')
+        self.decreaseBSButton.grid(column=2, row=7, sticky='e')
         self.increaseBSButton = tk.Button(self, text='+', command=self.increaseBlocksize, width=1)
         self.increaseBSButton.grid(column=3, row=7, sticky='w')
 
@@ -207,10 +196,17 @@ class tapeimgrGUI(tk.Frame):
 
         self.start_button = tk.Button(self,
                                        text='Start',
-                                       width=15,
+                                       width=10,
                                        underline=0,
                                        command=self.on_submit)
-        self.start_button.grid(column=1, row=13, sticky='w')
+        self.start_button.grid(column=1, row=13, sticky='e')
+
+        self.quit_button = tk.Button(self,
+                                       text='Exit',
+                                       width=10,
+                                       underline=0,
+                                       command=self.on_quit)
+        self.quit_button.grid(column=2, row=13, sticky='w', columnspan=2)
 
         ttk.Separator(self, orient='horizontal').grid(column=0, row=14, columnspan=4, sticky='ew')
 
@@ -309,9 +305,8 @@ def main():
         t1.join()
     except KeyboardInterrupt:
         if config.finishedTape:
-            # Tape finished: notify user TODO add cancel button to exit
+            # Tape finished: notify user
             msg = 'Completed processing this tape, click OK to continue or Cancel to quit'
-            #tkMessageBox.showinfo("Finished", msg)
             continueFlag = tkMessageBox.askokcancel("Tape finished", msg)
             if continueFlag:
                 # Restart the program

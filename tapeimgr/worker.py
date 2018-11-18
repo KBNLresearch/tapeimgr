@@ -78,9 +78,8 @@ def worker():
     logging.info(msg) 
 
     config.finishedTape = True
+    print("Worker finished!")
 
-    # Wait 2 seconds to avoid race condition between logging and KeyboardInterrupt
-    time.sleep(2)
     # This triggers a KeyboardInterrupt in the main thread
     thread.interrupt_main()
 
