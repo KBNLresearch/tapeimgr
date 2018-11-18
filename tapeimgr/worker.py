@@ -15,7 +15,8 @@ try:
     import thread  # Python 2.x
 except ImportError:
     import _thread as thread  # Python 3.x
-
+from . import shared
+from . import config
 
 def generate_file_sha512(fileIn):
     """Generate sha512 hash of file"""
@@ -63,13 +64,20 @@ def checksumDirectory(directory):
 
 def worker():
     # Skeleton worker function, runs in separate thread (see below)   
-    print("worker started")
-    while True:
-        # Report time / date at 2-second intervals
+
+    # Loop periodically scans value of config.readyToStart
+    while not config.readyToStart:
         time.sleep(2)
-        timeStr = time.asctime()
-        msg = 'Current time: ' + timeStr
-        logging.info(msg) 
+
+    msg = 'Time to wake up'
+    logging.info(msg) 
+
+    time.sleep(2)
+    timeStr = time.asctime()
+    msg = 'Current time: ' + timeStr
+    logging.info(msg) 
+
+    config.finishedTape = True
 
 
 def processDiscTest(carrierData):
