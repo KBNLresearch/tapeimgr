@@ -79,6 +79,11 @@ def worker():
 
     config.finishedTape = True
 
+    # Wait 2 seconds to avoid race condition between logging and KeyboardInterrupt
+    time.sleep(2)
+    # This triggers a KeyboardInterrupt in the main thread
+    thread.interrupt_main()
+
 
 def processDiscTest(carrierData):
     """Dummy version of processDisc function that doesn't do any actual imaging

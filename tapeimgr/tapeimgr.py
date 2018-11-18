@@ -50,7 +50,7 @@ class tapeimgrGUI(tk.Frame):
         self.volumeNoOld = ""
         self.outDir = "/"
         self.build_gui()
-
+        
     def on_quit(self, event=None):
         """Wait until the disc that is currently being pocessed has
         finished, and quit (batch can be resumed by opening it in the File dialog)
@@ -100,7 +100,7 @@ class tapeimgrGUI(tk.Frame):
         if blocksizeValid:
             # This flag tells worker module tape extraction can start 
             config.readyToStart = True
-            
+
             # Disable start button
             # TODO: enable once worker has finished its job (how? perhaps loop that periodically
             # checks config.finishedTape?)
@@ -113,8 +113,12 @@ class tapeimgrGUI(tk.Frame):
             # This doesn't work, perhaps this wolud be better:
             # https://stackoverflow.com/questions/46788776/update-tkinter-widget-from-main-thread-after-worker-thread-completes 
             
+            # Or this:
+
+            # https://stackoverflow.com/questions/25295863/how-to-quit-current-program-and-recreate-the-original-gui-also-creating-a-secre
+
             # Enable start button again
-            self.start_button.config(state='normal')
+            #self.start_button.config(state='normal')
 
         
         print(config.readyToStart)
@@ -153,7 +157,7 @@ class tapeimgrGUI(tk.Frame):
 
     def build_gui(self):
         """Build the GUI"""
-        
+                
         self.root.title('tapeimgr')
         self.root.option_add('*tearOff', 'FALSE')
         self.grid(column=0, row=0, sticky='w')
@@ -256,6 +260,7 @@ class tapeimgrGUI(tk.Frame):
         for child in self.winfo_children():
             child.grid_configure(padx=5, pady=5)
 
+
 class TextHandler(logging.Handler):
     """This class allows you to log to a Tkinter Text or ScrolledText widget
     Adapted from: https://gist.github.com/moshekaplan/c425f861de7bbf28ef06
@@ -315,22 +320,24 @@ def main():
     try:
         root = tk.Tk()
         tapeimgrGUI(root)
-
+        
         t1 = threading.Thread(target=worker.worker, args=[])
         t1.start()
 
         root.mainloop()
         t1.join()
     except KeyboardInterrupt:
-        if config.finishedBatch:
-            # Batch finished: notify user
-            msg = 'Completed processing this batch, click OK to exit'
-            tkMessageBox.showinfo("Finished", msg)
-        elif config.quitFlag:
-            # User pressed exit; notify user
-            msg = 'Quitting because user pressed Exit, click OK to exit'
-            tkMessageBox.showinfo("Exit", msg)
-        os._exit(0)
+        if config.finishedTape:
+            # Tape finished: notify user TODO add cancel button to exit
+            msg = 'Completed processing this tape, click OK to continue or Cancel to quit'
+            #tkMessageBox.showinfo("Finished", msg)
+            continueFlag = tkMessageBox.askokcancel("Tape finished", msg)
+            if continueFlag:
+                # Restart the program
+                python = sys.executable
+                os.execl(python, python, * sys.argv)
+            else:
+                os._exit(0)
 
 if __name__ == "__main__":
     main()
