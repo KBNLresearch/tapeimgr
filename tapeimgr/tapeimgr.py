@@ -1,319 +1,272 @@
 #! /usr/bin/env python3
-"""
-Script for automated reading of tape
-
-Author: Johan van der Knijff
-Research department,  KB / National Library of the Netherlands
-
+"""This module contains iromlab's cdWorker code, i.e. the code that monitors
+the list of jobs (submitted from the GUI) and does the actual imaging and ripping
 """
 
 import sys
 import os
-import imp
+import shutil
 import time
-import threading
+import glob
+import csv
+import hashlib
 import logging
-import tkinter as tk
-from tkinter import filedialog as tkFileDialog
-from tkinter import scrolledtext as ScrolledText
-from tkinter import messagebox as tkMessageBox
-from tkinter import ttk
+import _thread as thread
 from . import shared
-from . import worker
 from . import config
 
+def generate_file_sha512(fileIn):
+    """Generate sha512 hash of file"""
 
-__version__ = '0.1.0'
+    # fileIn is read in chunks to ensure it will work with (very) large files as well
+    # Adapted from: http://stackoverflow.com/a/1131255/1209004
 
-
-class tapeimgrGUI(tk.Frame):
-
-    """This class defines the graphical user interface + associated functions
-    for associated actions
-    """
-
-    def __init__(self, parent, *args, **kwargs):
-        """Initiate class"""
-        tk.Frame.__init__(self, parent, *args, **kwargs)
-        self.root = parent
-        config.readyToStart = False
-        config.finishedTape = False
-        self.catidOld = ""
-        self.titleOld = ""
-        self.volumeNoOld = ""
-        self.outDir = os.path.expanduser("~")
-        self.build_gui()
-        
-    def on_quit(self, event=None):
-        """Quit tapeimgr"""
-        os._exit(0)
-
-    def on_submit(self, event=None):
-        """fetch and validate entered input"""
-
-        # Fetch entered values (strip any leading / traling whitespace characters)
-        config.tapeDevice = self.tapeDevice_entry.get().strip()
-        config.initBlocksize = self.initBlocksize_entry.get().strip()
-        config.sessions = self.sessions_entry.get().strip()
-        config.prefix = self.prefix_entry.get().strip()
-        config.extension = self.extension_entry.get().strip()
-        config.fillBlocks = self.fBlocks.get()
-
-        print(config.tapeDevice, config.initBlocksize, config.prefix, config.extension, config.fillBlocks)
-
-        # Check if block size is valid (i.e. a multiple of 512)
-        blocksizeValid = False
-        try:
-            noBlocks = (int(config.initBlocksize)/512)
-
-            if not noBlocks.is_integer():
-                msg = "Initial block size must be a multiple of 512"
-                tkMessageBox.showerror("ERROR", msg)
-            elif noBlocks == 0:
-                msg = "Initial block size cannot be 0"
-                tkMessageBox.showerror("ERROR", msg)
-            else:
-                blocksizeValid = True
-
-        except ValueError:
-            msg = "Initial block size must be a number"
-            tkMessageBox.showerror("ERROR", msg)
-
-        # TODO Check if sessions entry is valid
-        sessionsValid = True
-                
-        if blocksizeValid and sessionsValid:
-            # This flag tells worker module tape extraction can start 
-            config.readyToStart = True
-
-            # Disable start and exit buttons
-            self.start_button.config(state='disabled')
-            self.quit_button.config(state='disabled')
-
-    def setupLogging(self, handler):
-        """Set up logging-related settings"""
-        logFile = os.path.join('.', 'batch.log')
-
-        logging.basicConfig(handlers=[logging.FileHandler(logFile, 'a', 'utf-8')],
-                            level=logging.INFO,
-                            format='%(asctime)s - %(levelname)s - %(message)s')
-
-        # Add the handler to logger
-        logger = logging.getLogger()
-        logger.addHandler(handler)
-
-    def selectOutputDirectory(self):
-        """Select output directory"""
-        dirInit = self.outDir
-        self.outDir = tkFileDialog.askdirectory(initialdir=dirInit)
-        print(self.outDir)
-        self.outDirLabel['text'] = self.outDir
-
-    def decreaseBlocksize(self):
-        """Decrease value of initBlockSize"""
-        blockSizeOld = int(self.initBlocksize_entry.get().strip())
-        blockSizeNew = max(blockSizeOld - 512, 512)
-        self.initBlocksize_entry.delete(0,tk.END)
-        self.initBlocksize_entry.insert(tk.END, str(blockSizeNew))
-
-    def increaseBlocksize(self):
-        """Increase value of initBlockSize"""
-        blockSizeOld = int(self.initBlocksize_entry.get().strip())
-        blockSizeNew = blockSizeOld + 512
-        self.initBlocksize_entry.delete(0,tk.END)
-        self.initBlocksize_entry.insert(tk.END, str(blockSizeNew))
-
-    def build_gui(self):
-        """Build the GUI"""
-    
-        self.root.title('tapeimgr')
-        self.root.option_add('*tearOff', 'FALSE')
-        self.grid(column=0, row=0, sticky='w')
-        self.grid_columnconfigure(0, weight=0, pad=0)
-        self.grid_columnconfigure(1, weight=0, pad=0)
-        self.grid_columnconfigure(2, weight=0, pad=0)
-        self.grid_columnconfigure(3, weight=0, pad=0)
-
-        # Entry elements
-        ttk.Separator(self, orient='horizontal').grid(column=0, row=0, columnspan=4, sticky='ew')
-        # Output Directory
-        #tk.Label(self, text='Output Directory').grid(column=0, row=3, sticky='w')
-        self.outDirButton_entry = tk.Button(self, text='Select Output Directory', command=self.selectOutputDirectory, width=20)
-        self.outDirButton_entry.grid(column=0, row=3, sticky='w')
-        self.outDirLabel = tk.Label(self, text=self.outDir)
-        self.outDirLabel.update()
-        self.outDirLabel.grid(column=1, row=3, sticky='w')
-
-        ttk.Separator(self, orient='horizontal').grid(column=0, row=5, columnspan=4, sticky='ew')
-
-        # Tape Device
-        tk.Label(self, text='Tape Device').grid(column=0, row=6, sticky='w')
-        self.tapeDevice_entry = tk.Entry(self, width=20)
-        self.tapeDevice_entry['background'] = 'white'
-        self.tapeDevice_entry.insert(tk.END, config.tapeDevice)
-        self.tapeDevice_entry.grid(column=1, row=6, sticky='w')
-
-        # Initial Block Size
-        tk.Label(self, text='Initial Block Size').grid(column=0, row=7, sticky='w')
-        self.initBlocksize_entry = tk.Entry(self, width=20)
-        self.initBlocksize_entry['background'] = 'white'
-        self.initBlocksize_entry.insert(tk.END, config.initBlocksize)
-        self.initBlocksize_entry.grid(column=1, row=7, sticky='w')
-        self.decreaseBSButton = tk.Button(self, text='-', command=self.decreaseBlocksize, width=1)
-        self.decreaseBSButton.grid(column=2, row=7, sticky='e')
-        self.increaseBSButton = tk.Button(self, text='+', command=self.increaseBlocksize, width=1)
-        self.increaseBSButton.grid(column=3, row=7, sticky='w')
-
-        # Sessions
-        tk.Label(self, text='Sessions (comma-separated list)').grid(column=0, row=8, sticky='w')
-        self.sessions_entry = tk.Entry(self, width=20)
-        self.sessions_entry['background'] = 'white'
-        self.sessions_entry.grid(column=1, row=8, sticky='w')
-
-        # Prefix
-        tk.Label(self, text='Prefix').grid(column=0, row=9, sticky='w')
-        self.prefix_entry = tk.Entry(self, width=20)
-        self.prefix_entry['background'] = 'white'
-        self.prefix_entry.insert(tk.END, config.prefix)
-        self.prefix_entry.grid(column=1, row=9, sticky='w')
-
-        # Extension
-        tk.Label(self, text='Extension').grid(column=0, row=10, sticky='w')
-        self.extension_entry = tk.Entry(self, width=20)
-        self.extension_entry['background'] = 'white'
-        self.extension_entry.insert(tk.END, config.extension)
-        self.extension_entry.grid(column=1, row=10, sticky='w')
-
-        # Fill failed blocks
-        tk.Label(self, text='Fill failed blocks').grid(column=0, row=11, sticky='w')
-        self.fBlocks = tk.IntVar()
-        self.fillblocks_entry = tk.Checkbutton(self, variable=self.fBlocks)
-        self.fillblocks_entry.grid(column=1, row=11, sticky='w')
-
-        ttk.Separator(self, orient='horizontal').grid(column=0, row=12, columnspan=4, sticky='ew')
-
-        self.start_button = tk.Button(self,
-                                       text='Start',
-                                       width=10,
-                                       underline=0,
-                                       command=self.on_submit)
-        self.start_button.grid(column=1, row=13, sticky='e')
-
-        self.quit_button = tk.Button(self,
-                                       text='Exit',
-                                       width=10,
-                                       underline=0,
-                                       command=self.on_quit)
-        self.quit_button.grid(column=2, row=13, sticky='w', columnspan=2)
-
-        ttk.Separator(self, orient='horizontal').grid(column=0, row=14, columnspan=4, sticky='ew')
-
-        # Add ScrolledText widget to display logging info
-        st = ScrolledText.ScrolledText(self, state='disabled', height=15)
-        st.configure(font='TkFixedFont')
-        st['background'] = 'white'
-        st.grid(column=0, row=15, sticky='ew', columnspan=4)
-
-        # Create textLogger
-        self.text_handler = TextHandler(st)
-
-       # Logging configuration
-        logging.basicConfig(filename='test.log',
-            level=logging.INFO, 
-            format='%(asctime)s - %(levelname)s - %(message)s')        
-
-        # Add the handler to logger
-        logger = logging.getLogger()        
-        logger.addHandler(self.text_handler)
-
-        # Define bindings for keyboard shortcuts: buttons
-        self.root.bind_all('<Control-Key-s>', self.on_submit)
-        self.root.bind_all('<Control-Key-e>', self.on_quit)
-
-        # TODO keyboard shortcuts for Radiobox selections: couldn't find ANY info on how to do this!
-
-        for child in self.winfo_children():
-            child.grid_configure(padx=5, pady=5)
+    blocksize = 2**20
+    m = hashlib.sha512()
+    with open(fileIn, "rb") as f:
+        while True:
+            buf = f.read(blocksize)
+            if not buf:
+                break
+            m.update(buf)
+    return m.hexdigest()
 
 
-class TextHandler(logging.Handler):
-    """This class allows you to log to a Tkinter Text or ScrolledText widget
-    Adapted from: https://gist.github.com/moshekaplan/c425f861de7bbf28ef06
-    """
+def checksumDirectory(directory):
+    """Calculate checksums for all files in directory"""
 
-    def __init__(self, text):
-        """Run the regular Handler __init__"""
-        logging.Handler.__init__(self)
-        # Store a reference to the Text it will log to
-        self.text = text
+    # All files in directory
+    allFiles = glob.glob(directory + "/*")
 
-    def emit(self, record):
-        """Add a record to the widget"""
-        msg = self.format(record)
+    # Dictionary for storing results
+    checksums = {}
 
-        def append():
-            """Append text"""
-            self.text.configure(state='normal')
-            self.text.insert(tk.END, msg + '\n')
-            self.text.configure(state='disabled')
-            # Autoscroll to the bottom
-            self.text.yview(tk.END)
-        # This is necessary because we can't modify the Text from other threads
-        self.text.after(0, append)
+    for fName in allFiles:
+        hashString = generate_file_sha512(fName)
+        checksums[fName] = hashString
 
-
-def checkDirExists(dirIn):
-    """Check if directory exists and exit if not"""
-    if not os.path.isdir(dirIn):
-        msg = "directory " + dirIn + " does not exist!"
-        tkMessageBox.showerror("Error", msg)
-        sys.exit()
-
-
-def errorExit(error):
-    """Show error message in messagebox and then exit after userv presses OK"""
-    tkMessageBox.showerror("Error", error)
-    sys.exit()
-
-
-def main_is_frozen():
-    """Return True if application is frozen (Py2Exe), and False otherwise"""
-    return (hasattr(sys, "frozen") or  # new py2exe
-            hasattr(sys, "importers") or  # old py2exe
-            imp.is_frozen("__main__"))  # tools/freeze
-
-
-def get_main_dir():
-    """Return application (installation) directory"""
-    if main_is_frozen():
-        return os.path.dirname(sys.executable)
-    return os.path.dirname(sys.argv[0])
-
-def main():
-    """Main function"""
-
+    # Write checksum file
     try:
-        root = tk.Tk()
-        tapeimgrGUI(root)
-        
-        t1 = threading.Thread(target=worker.worker, args=[])
-        t1.start()
+        fChecksum = open(os.path.join(directory, "checksums.sha512"), "w", encoding="utf-8")
+        for fName in checksums:
+            lineOut = checksums[fName] + " " + os.path.basename(fName) + '\n'
+            fChecksum.write(lineOut)
+        fChecksum.close()
+        wroteChecksums = True
+    except IOError:
+        wroteChecksums = False
 
-        root.mainloop()
-        t1.join()
-    except KeyboardInterrupt:
-        if config.finishedTape:
-            # Tape finished: notify user
-            # TODO: for some reason the dialog doesn't show up until user moves the mouse or
-            # presses the keyboard. Very odd ... 
-            msg = 'Completed processing this tape, click OK to continue or Cancel to quit'
-            continueFlag = tkMessageBox.askokcancel("Tape finished", msg)
-            if continueFlag:
-                # Restart the program
-                python = sys.executable
-                os.execl(python, python, * sys.argv)
+    return wroteChecksums
+
+
+def worker():
+    # Skeleton worker function, runs in separate thread (see below)   
+
+    # Loop periodically scans value of config.readyToStart
+    while not config.readyToStart:
+        time.sleep(2)
+
+    msg = 'Time to wake up'
+    logging.info(msg) 
+
+    time.sleep(2)
+    timeStr = time.asctime()
+    msg = 'Current time: ' + timeStr
+    logging.info(msg)
+
+    config.finishedTape = True
+    print("Worker finished!")
+    
+    # Wait 2 seconds to avoid race condition
+    time.sleep(2)
+    # This triggers a KeyboardInterrupt in the main thread
+    thread.interrupt_main()
+
+
+def processDiscTest(carrierData):
+    """Dummy version of processDisc function that doesn't do any actual imaging
+    used for testing only
+    """
+    jobID = carrierData['jobID']
+    logging.info(''.join(['### Job identifier: ', jobID]))
+    logging.info(''.join(['PPN: ', carrierData['PPN']]))
+    logging.info(''.join(['Title: ', carrierData['title']]))
+    logging.info(''.join(['Volume number: ', carrierData['volumeNo']]))
+
+    # Create dummy carrierInfo dictionary (values are needed for batch manifest)
+    carrierInfo = {}
+    carrierInfo['containsAudio'] = False
+    carrierInfo['containsData'] = False
+    carrierInfo['cdExtra'] = False
+
+    success = True
+
+    # Create comma-delimited batch manifest entry for this carrier
+
+    # Dummy value for VolumeIdentifier
+    volumeID = 'DUMMY'
+
+    # Put all items for batch manifest entry in a list
+
+    rowBatchManifest = ([jobID,
+                         carrierData['PPN'],
+                         carrierData['volumeNo'],
+                         carrierData['carrierType'],
+                         carrierData['title'],
+                         volumeID,
+                         str(success),
+                         str(carrierInfo['containsAudio']),
+                         str(carrierInfo['containsData']),
+                         str(carrierInfo['cdExtra'])])
+
+    # Note: carrierType is value entered by user, NOT auto-detected value! Might need some changes.
+
+    # Open batch manifest in append mode
+    if sys.version.startswith('3'):
+        # Py3: csv.reader expects file opened in text mode
+        bm = open(config.batchManifest, "a", encoding="utf-8")
+    elif sys.version.startswith('2'):
+        # Py2: csv.reader expects file opened in binary mode
+        bm = open(config.batchManifest, "ab")
+
+    # Create CSV writer object
+    csvBm = csv.writer(bm, lineterminator='\n')
+
+    # Write row to batch manifest and close file
+    csvBm.writerow(rowBatchManifest)
+    bm.close()
+
+    return success
+
+
+def quitIromlab():
+    """Send KeyboardInterrupt after user pressed Exit button"""
+    logging.info('*** Quitting because user pressed Exit ***')
+    # Wait 2 seconds to avoid race condition between logging and KeyboardInterrupt
+    time.sleep(2)
+    # This triggers a KeyboardInterrupt in the main thread
+    thread.interrupt_main()
+
+
+def cdWorker():
+    """Worker function that monitors the job queue and processes the discs in FIFO order"""
+
+    # Initialise 'success' flag to prevent run-time error in case user
+    # finalizes batch before entering any carriers (edge case)
+    success = True
+
+    """
+    # Loop periodically scans value of config.batchFolder
+    while not config.readyToStart:
+        time.sleep(2)
+
+    logging.info(''.join(['batchFolder set to ', config.batchFolder]))
+
+    # Define batch manifest (CSV file with minimal metadata on each carrier)
+    config.batchManifest = os.path.join(config.batchFolder, 'manifest.csv')
+
+    # Write header row if batch manifest doesn't exist already
+    if not os.path.isfile(config.batchManifest):
+        headerBatchManifest = (['jobID',
+                                'PPN',
+                                'volumeNo',
+                                'carrierType',
+                                'title',
+                                'volumeID',
+                                'success',
+                                'containsAudio',
+                                'containsData',
+                                'cdExtra'])
+
+        # Open batch manifest in append mode
+        if sys.version.startswith('3'):
+            # Py3: csv.reader expects file opened in text mode
+            bm = open(config.batchManifest, "a", encoding="utf-8")
+        elif sys.version.startswith('2'):
+            # Py2: csv.reader expects file opened in binary mode
+            bm = open(config.batchManifest, "ab")
+
+        # Create CSV writer object
+        csvBm = csv.writer(bm, lineterminator='\n')
+
+        # Write header to batch manifest and close file
+        csvBm.writerow(headerBatchManifest)
+        bm.close()
+    """
+    # Initialise batch
+    logging.info('*** Initialising batch ***')
+ 
+    # Flag that marks end of batch (main processing loop keeps running while False)
+    endOfBatchFlag = False
+
+    # Check if user pressed Exit, and quit if so ...
+    if config.quitFlag:
+        quitIromlab()
+
+    while not endOfBatchFlag and not config.quitFlag:
+        time.sleep(2)
+        logging.info('*** Writing an entry ***')
+        """
+        # Get directory listing, sorted by creation time
+        # List conversion because in Py3 a filter object is not a list!
+        files = list(filter(os.path.isfile, glob.glob(config.jobsFolder + '/*')))
+        files.sort(key=lambda x: os.path.getctime(x))
+
+        noFiles = len(files)
+
+        if noFiles > 0:
+            # Identify oldest job file
+            jobOldest = files[0]
+
+            # Open job file and read contents
+
+            if sys.version.startswith('3'):
+                # Py3: csv.reader expects file opened in text mode
+                fj = open(jobOldest, "r", encoding="utf-8")
+            elif sys.version.startswith('2'):
+                # Py2: csv.reader expects file opened in binary mode
+                fj = open(jobOldest, "rb")
+
+            fjCSV = csv.reader(fj)
+            jobList = next(fjCSV)
+            fj.close()
+
+            if jobList[0] == 'EOB':
+                # End of current batch
+                endOfBatchFlag = True
+                config.readyToStart = False
+                config.finishedBatch = True
+                os.remove(jobOldest)
+                shutil.rmtree(config.jobsFolder)
+                shutil.rmtree(config.jobsFailedFolder)
+                logging.info('*** End Of Batch job found, closing batch ***')
+                # Wait 2 seconds to avoid race condition between logging and KeyboardInterrupt
+                time.sleep(2)
+                # This triggers a KeyboardInterrupt in the main thread
+                thread.interrupt_main()
             else:
-                t1.join()
+                # Set up dictionary that holds carrier data
+                carrierData = {}
+                carrierData['jobID'] = jobList[0]
+                carrierData['PPN'] = jobList[1]
+                carrierData['title'] = jobList[2]
+                carrierData['volumeNo'] = jobList[3]
+                carrierData['carrierType'] = jobList[4]
 
-if __name__ == "__main__":
-    main()
+                # Process the carrier
+                #success = processDisc(carrierData)
+                success = processDiscTest(carrierData)
+
+            if success and not endOfBatchFlag:
+                # Remove job file
+                os.remove(jobOldest)
+            elif not endOfBatchFlag:
+                # Move job file to failed jobs folder
+                baseName = os.path.basename(jobOldest)
+                os.rename(jobOldest, os.path.join(config.jobsFailedFolder, baseName))
+
+        """
+
+        # Check if user pressed Exit, and quit if so ...
+        if config.quitFlag:
+            quitIromlab()
