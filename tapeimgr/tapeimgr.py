@@ -41,7 +41,7 @@ class tapeimgrGUI(tk.Frame):
         self.catidOld = ""
         self.titleOld = ""
         self.volumeNoOld = ""
-        self.outDir = "/"
+        self.outDir = os.path.expanduser("~")
         self.build_gui()
         
     def on_quit(self, event=None):
@@ -104,7 +104,8 @@ class tapeimgrGUI(tk.Frame):
 
     def selectOutputDirectory(self):
         """Select output directory"""
-        self.outDir = tkFileDialog.askdirectory(initialdir="/")
+        dirInit = self.outDir
+        self.outDir = tkFileDialog.askdirectory(initialdir=dirInit)
         print(self.outDir)
         self.outDirLabel['text'] = self.outDir
 
