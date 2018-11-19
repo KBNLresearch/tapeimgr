@@ -148,26 +148,28 @@ def processSession(sessionNumber, extractSessionFlag):
 
         # Name of output file for this session
         ofName = config.prefix + str(sessionNumber).zfill(6) + '.' + config.extension
+        ofName = os.path.join(config.dirOut, ofName)
         #ofName = "$dirOut"/""$prefix""`printf "%06g" "$session"`."$extension"
 
         logging.info('# Extracting session #' + str(sessionNumber) + ' to file ' + ofName)
 
-        """
-        if [ "$fill" = "true" ] ; then
+        if config.fillBlocks == 1:
             # Invoke dd with conv=noerror,sync options
-            dd if="$tapeDevice" of="$ofName" bs="$bSize" conv=noerror,sync >> "$logFile" 2>&1
-        else
-            dd if="$tapeDevice" of="$ofName" bs="$bSize" >> "$logFile" 2>&1
-        fi
+            pass
+            #dd if="$tapeDevice" of="$ofName" bs="$bSize" conv=noerror,sync >> "$logFile" 2>&1
+        else:
+            pass
+            #dd if="$tapeDevice" of="$ofName" bs="$bSize" >> "$logFile" 2>&1
 
-        ddStatus="$?"
-        echo "# dd exit code = " "$ddStatus" | tee -a "$logFile"
-    else
+        #ddStatus="$?"
+        #echo "# dd exit code = " "$ddStatus" | tee -a "$logFile"
+    else:
         # Fast-forward tape to next session
-        echo "# Skipping session # ""$session"", fast-forward to next session" | tee -a "$logFile"
-        mt -f "$tapeDevice" fsf 1 >> "$logFile" 2>&1
-    fi
+        pass
+        #echo "# Skipping session # ""$session"", fast-forward to next session" | tee -a "$logFile"
+        #mt -f "$tapeDevice" fsf 1 >> "$logFile" 2>&1
 
+    """
     # Try to position tape 1 record forward; if this fails this means
     # the end of the tape was reached
     mt -f "$tapeDevice" fsr 1 >> "$logFile" 2>&1
