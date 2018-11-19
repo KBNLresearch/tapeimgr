@@ -38,10 +38,7 @@ class tapeimgrGUI(tk.Frame):
         self.root = parent
         config.readyToStart = False
         config.finishedTape = False
-        self.catidOld = ""
-        self.titleOld = ""
-        self.volumeNoOld = ""
-        self.outDir = os.path.expanduser("~")
+        config.dirOut = os.path.expanduser("~")
         self.build_gui()
         
     def on_quit(self, event=None):
@@ -104,10 +101,10 @@ class tapeimgrGUI(tk.Frame):
 
     def selectOutputDirectory(self):
         """Select output directory"""
-        dirInit = self.outDir
-        self.outDir = tkFileDialog.askdirectory(initialdir=dirInit)
-        print(self.outDir)
-        self.outDirLabel['text'] = self.outDir
+        dirInit = config.dirOut
+        config.dirOut = tkFileDialog.askdirectory(initialdir=dirInit)
+        print(config.dirOut)
+        self.outDirLabel['text'] = config.dirOut
 
     def decreaseBlocksize(self):
         """Decrease value of initBlockSize"""
@@ -137,10 +134,9 @@ class tapeimgrGUI(tk.Frame):
         # Entry elements
         ttk.Separator(self, orient='horizontal').grid(column=0, row=0, columnspan=4, sticky='ew')
         # Output Directory
-        #tk.Label(self, text='Output Directory').grid(column=0, row=3, sticky='w')
         self.outDirButton_entry = tk.Button(self, text='Select Output Directory', command=self.selectOutputDirectory, width=20)
         self.outDirButton_entry.grid(column=0, row=3, sticky='w')
-        self.outDirLabel = tk.Label(self, text=self.outDir)
+        self.outDirLabel = tk.Label(self, text=config.dirOut)
         self.outDirLabel.update()
         self.outDirLabel.grid(column=1, row=3, sticky='w')
 

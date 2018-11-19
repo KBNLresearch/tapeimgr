@@ -36,7 +36,7 @@ def checksumDirectory(directory):
     """Calculate checksums for all files in directory"""
 
     # All files in directory
-    allFiles = glob.glob(directory + "/*")
+    allFiles = glob.glob(directory + "/*." + config.extension)
 
     # Dictionary for storing results
     checksums = {}
@@ -58,6 +58,137 @@ def checksumDirectory(directory):
 
     return wroteChecksums
 
+def processTape():
+    """Process a tape"""
+    # TODO: add actual calls to mt
+
+    print("entering processTape")
+
+    # Write some general info to log file
+    logging.info('*** Tape extraction log ***')
+    #dateStart="$(date)"
+    #logging.info('# Start date/time ' + dateStart)
+    logging.info('# User input')
+    logging.info('dirOut = ' + config.dirOut)
+    logging.info('tapeDevice = ' + config.tapeDevice) 
+    logging.info('initial blockSize = ' + config.initBlocksize)
+    logging.info('sessions = ' + config.sessions)
+    logging.info('prefix = ' + config.prefix)
+    logging.info('extension = ' + config.extension)
+    logging.info('fill blocks = ' + str(config.fillBlocks))
+
+    if config.fillBlocks == 1:
+        # dd's conv=sync flag results in padding bytes for each block if block 
+        # size is too large, so override user-defined value with default
+        # if -f flag was used
+        config.initBlocksize = 512
+        logging.info('Reset initial block size to 512 because -f flag is used')
+
+    # Flag that indicates end of tape was reached
+    endOfTape = False
+    # Session index
+    session = 1
+    
+    # Get tape status, output to log file
+    logging.info('# Tape status')
+    # TODO insert mt call
+    # mt -f "$tapeDevice" status | tee -a "$logFile"
+
+    # Split sessions string to list
+    try:
+        sessions = [int(i) for i in config.sessions.split(',')]
+    except ValueError:
+        # config.sessions is empty string or invalid input
+        sessions = []
+
+    # Iterate over all sessions on tape until end is detected
+    # TODO remove session < 10 limit
+    while not endOfTape and session < 10:
+        print("session = " + str(session))
+        # Only extract sessions defined by sessions parameter
+        # (if session parameter is empty all sessions are extracted)
+        if session in sessions or sessions == []:
+            extractSession = True
+        else:
+            extractSession = False
+
+        print("xtractSession = " + str(extractSession))
+
+        # Call session processing function 
+        resultSession = processSession(session, extractSession)
+        print("Processing session")
+
+        # Increase session number
+        session += 1
+    
+    # Create checksum file
+    logging.info('# Creating checksum file')
+    checksumStatus = checksumDirectory(os.path.normpath(config.dirOut))
+        
+    # Rewind and eject the tape
+    logging.info('# Rewinding tape')
+    #mt -f "$tapeDevice" rewind 2>&1 | tee -a "$logFile"
+    logging.info('# Ejecting tape')
+    #mt -f "$tapeDevice" eject 2>&1 | tee -a "$logFile"
+
+    # Write end date/time to log
+    #dateEnd="$(date)"
+    #logging.info('# End date/time ' + dateEnd)
+    return True
+
+
+def processSession(sessionNumber, extractSessionFlag):
+    """Process a session"""
+    # TODO: add actual calls to mt and dd
+
+    if extractSessionFlag:
+        # Determine block size for this session
+        blockSize = findBlocksize(config.initBlocksize)
+        logging.info('# Block size = ' + str(blockSize))
+
+        # Name of output file for this session
+        ofName = config.prefix + str(sessionNumber).zfill(6) + '.' + config.extension
+        #ofName = "$dirOut"/""$prefix""`printf "%06g" "$session"`."$extension"
+
+        logging.info('# Extracting session #' + str(sessionNumber) + ' to file ' + ofName)
+
+        """
+        if [ "$fill" = "true" ] ; then
+            # Invoke dd with conv=noerror,sync options
+            dd if="$tapeDevice" of="$ofName" bs="$bSize" conv=noerror,sync >> "$logFile" 2>&1
+        else
+            dd if="$tapeDevice" of="$ofName" bs="$bSize" >> "$logFile" 2>&1
+        fi
+
+        ddStatus="$?"
+        echo "# dd exit code = " "$ddStatus" | tee -a "$logFile"
+    else
+        # Fast-forward tape to next session
+        echo "# Skipping session # ""$session"", fast-forward to next session" | tee -a "$logFile"
+        mt -f "$tapeDevice" fsf 1 >> "$logFile" 2>&1
+    fi
+
+    # Try to position tape 1 record forward; if this fails this means
+    # the end of the tape was reached
+    mt -f "$tapeDevice" fsr 1 >> "$logFile" 2>&1
+    mtStatus="$?"
+    echo "# mt exit code = " "$mtStatus" | tee -a "$logFile"
+
+    if [[ "$mtStatus" -eq 0 ]]; then
+        # Another session exists. Position tape one record backward
+        mt -f "$tapeDevice" bsr 1 >> "$logFile" 2>&1
+    else
+        # No further sessions, end of tape reached
+        echo "# Reached end of tape" | tee -a "$logFile"
+        endOfTape="true"
+    fi
+    """
+    return True
+
+def findBlocksize(blockSizeInit):
+    """Find block size, starting from blockSizeInit"""
+    blockSize = 9999
+    return blockSize
 
 def worker():
     # Skeleton worker function, runs in separate thread (see below)   
@@ -73,6 +204,9 @@ def worker():
     timeStr = time.asctime()
     msg = 'Current time: ' + timeStr
     logging.info(msg)
+
+    # Process the tape
+    resultTape = processTape()
 
     config.finishedTape = True
     print("Worker finished!")
