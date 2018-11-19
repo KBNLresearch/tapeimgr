@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 """
 Script for automated reading of tape
 
@@ -13,24 +13,17 @@ import imp
 import time
 import threading
 import logging
-try:
-    import tkinter as tk  # Python 3.x
-    from tkinter import filedialog as tkFileDialog
-    from tkinter import scrolledtext as ScrolledText
-    from tkinter import messagebox as tkMessageBox
-    from tkinter import ttk
-except ImportError:
-    import Tkinter as tk  # Python 2.x
-    import tkFileDialog
-    import ScrolledText
-    import tkMessageBox
-    import ttk
+import tkinter as tk
+from tkinter import filedialog as tkFileDialog
+from tkinter import scrolledtext as ScrolledText
+from tkinter import messagebox as tkMessageBox
+from tkinter import ttk
 from . import shared
 from . import worker
 from . import config
 
 
-__version__ = '0.11.0'
+__version__ = '0.1.0'
 
 
 class tapeimgrGUI(tk.Frame):
@@ -61,6 +54,7 @@ class tapeimgrGUI(tk.Frame):
         # Fetch entered values (strip any leading / traling whitespace characters)
         config.tapeDevice = self.tapeDevice_entry.get().strip()
         config.initBlocksize = self.initBlocksize_entry.get().strip()
+        config.sessions = self.sessions_entry.get().strip()
         config.prefix = self.prefix_entry.get().strip()
         config.extension = self.extension_entry.get().strip()
         config.fillBlocks = self.fBlocks.get()
@@ -84,8 +78,11 @@ class tapeimgrGUI(tk.Frame):
         except ValueError:
             msg = "Initial block size must be a number"
             tkMessageBox.showerror("ERROR", msg)
-        
-        if blocksizeValid:
+
+        # TODO Check if sessions entry is valid
+        sessionsValid = True
+                
+        if blocksizeValid and sessionsValid:
             # This flag tells worker module tape extraction can start 
             config.readyToStart = True
 
@@ -306,6 +303,8 @@ def main():
     except KeyboardInterrupt:
         if config.finishedTape:
             # Tape finished: notify user
+            # TODO: for some reason the dialog doesn't show up until user moves the mouse or
+            # presses the keyboard. Very odd ... 
             msg = 'Completed processing this tape, click OK to continue or Cancel to quit'
             continueFlag = tkMessageBox.askokcancel("Tape finished", msg)
             if continueFlag:
@@ -313,7 +312,7 @@ def main():
                 python = sys.executable
                 os.execl(python, python, * sys.argv)
             else:
-                os._exit(0)
+                t1.join()
 
 if __name__ == "__main__":
     main()

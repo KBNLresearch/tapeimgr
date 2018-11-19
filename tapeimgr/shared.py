@@ -1,5 +1,5 @@
-#! /usr/bin/env python
-"""Shared functions module for Iromlab"""
+#! /usr/bin/env python3
+"""Shared functions module"""
 
 import os
 import subprocess as sub

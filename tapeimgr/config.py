@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 """Shared configuration constants"""
 
 tapeDevice = '/dev/nst0'

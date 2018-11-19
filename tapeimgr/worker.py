@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 """This module contains iromlab's cdWorker code, i.e. the code that monitors
 the list of jobs (submitted from the GUI) and does the actual imaging and ripping
 """
@@ -11,10 +11,7 @@ import glob
 import csv
 import hashlib
 import logging
-try:
-    import thread  # Python 2.x
-except ImportError:
-    import _thread as thread  # Python 3.x
+import _thread as thread
 from . import shared
 from . import config
 
@@ -75,11 +72,13 @@ def worker():
     time.sleep(2)
     timeStr = time.asctime()
     msg = 'Current time: ' + timeStr
-    logging.info(msg) 
+    logging.info(msg)
 
     config.finishedTape = True
     print("Worker finished!")
-
+    
+    # Wait 2 seconds to avoid race condition
+    time.sleep(2)
     # This triggers a KeyboardInterrupt in the main thread
     thread.interrupt_main()
 
