@@ -149,14 +149,14 @@ def processSession(sessionNumber, extractSessionFlag):
     if extractSessionFlag:
         # Determine block size for this session
         blockSize = findBlocksize(config.initBlocksize)
-        logging.info('# Block size = ' + str(blockSize))
+        logging.info('Block size = ' + str(blockSize))
 
         # Name of output file for this session
         ofName = config.prefix + str(sessionNumber).zfill(6) + '.' + config.extension
         ofName = os.path.join(config.dirOut, ofName)
         #ofName = "$dirOut"/""$prefix""`printf "%06g" "$session"`."$extension"
 
-        logging.info('# Extracting session #' + str(sessionNumber) + ' to file ' + ofName)
+        logging.info('# Extracting session # ' + str(sessionNumber) + ' to file ' + ofName)
 
         if config.fillBlocks == 1:
             # Invoke dd with conv=noerror,sync options
@@ -171,25 +171,24 @@ def processSession(sessionNumber, extractSessionFlag):
     else:
         # Fast-forward tape to next session
         pass
-        #echo "# Skipping session # ""$session"", fast-forward to next session" | tee -a "$logFile"
+        logging.info('# Skipping session # ' + str(sessionNumber) + ', fast-forward to next session')
         #mt -f "$tapeDevice" fsf 1 >> "$logFile" 2>&1
 
-    """
     # Try to position tape 1 record forward; if this fails this means
     # the end of the tape was reached
-    mt -f "$tapeDevice" fsr 1 >> "$logFile" 2>&1
-    mtStatus="$?"
-    echo "# mt exit code = " "$mtStatus" | tee -a "$logFile"
+    #mt -f "$tapeDevice" fsr 1 >> "$logFile" 2>&1
+    mtStatus = 0 # TODO, change to actual status!
+    logging.info('mt exit code = ' + str(mtStatus))
 
-    if [[ "$mtStatus" -eq 0 ]]; then
+    if mtStatus == 0:
         # Another session exists. Position tape one record backward
-        mt -f "$tapeDevice" bsr 1 >> "$logFile" 2>&1
-    else
+        #mt -f "$tapeDevice" bsr 1 >> "$logFile" 2>&1
+        pass
+    else:
         # No further sessions, end of tape reached
-        echo "# Reached end of tape" | tee -a "$logFile"
-        endOfTape="true"
-    fi
-    """
+        logging.info('# Reached end of tape')
+        endOfTape = True
+
     return True
 
 def findBlocksize(blockSizeInit):
