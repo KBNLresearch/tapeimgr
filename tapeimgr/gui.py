@@ -19,7 +19,6 @@ from tkinter import filedialog as tkFileDialog
 from tkinter import scrolledtext as ScrolledText
 from tkinter import messagebox as tkMessageBox
 from tkinter import ttk
-from . import shared
 from . import tapeimgr
 from . import config
 
@@ -41,12 +40,12 @@ class tapeimgrGUI(tk.Frame):
         config.finishedTape = False
         config.dirOut = os.path.expanduser("~")
         self.build_gui()
-        
-    def on_quit(self, event=None):
+
+    def on_quit(self):
         """Quit tapeimgr"""
         os._exit(0)
 
-    def on_submit(self, event=None):
+    def on_submit(self):
         """fetch and validate entered input"""
 
         # Fetch entered values (strip any leading / traling whitespace characters)
@@ -77,25 +76,33 @@ class tapeimgrGUI(tk.Frame):
             msg = "Initial block size must be a number"
             tkMessageBox.showerror("ERROR", msg)
 
-        # TODO Check if sessions entry is valid
-        sessionsValid = True
-                
+        # Check if sessions entry is valid
+
+        if config.sessions.strip() == '':
+            sessionsValid = True
+        else:
+            try:
+                sessionsList = [int(i) for i in config.sessions.split(',')]
+                sessionsValid = True
+            except ValueError:
+                # invalid input
+                msg = "Sessions value cannot be " + config.sessions
+                tkMessageBox.showerror("ERROR", msg)
+                sessionsValid = False
+
         if blocksizeValid and sessionsValid:
-            # This flag tells worker module tape extraction can start 
+            # This flag tells worker module tape extraction can start
             config.readyToStart = True
 
             # Disable start and exit buttons
             self.start_button.config(state='disabled')
             self.quit_button.config(state='disabled')
 
+            # Start polling log messages from the queue
+            self.after(100, self.poll_log_queue)
+
             # Launch tape processing function as subprocess
-            #t1 = threading.Thread(target=tapeimgr.processTape, args=[])
-            t1 = threading.Thread(target=tapeimgr.test, args=[])
-            
-            # "kick start" listener if task list is empty
-            if not config.task_list:
-                self.listen(force_start=True)
-            
+            t1 = threading.Thread(target=tapeimgr.processTape, args=[])
             t1.start()
 
 
@@ -110,19 +117,19 @@ class tapeimgrGUI(tk.Frame):
         """Decrease value of initBlockSize"""
         blockSizeOld = int(self.initBlocksize_entry.get().strip())
         blockSizeNew = max(blockSizeOld - 512, 512)
-        self.initBlocksize_entry.delete(0,tk.END)
+        self.initBlocksize_entry.delete(0, tk.END)
         self.initBlocksize_entry.insert(tk.END, str(blockSizeNew))
 
     def increaseBlocksize(self):
         """Increase value of initBlockSize"""
         blockSizeOld = int(self.initBlocksize_entry.get().strip())
         blockSizeNew = blockSizeOld + 512
-        self.initBlocksize_entry.delete(0,tk.END)
+        self.initBlocksize_entry.delete(0, tk.END)
         self.initBlocksize_entry.insert(tk.END, str(blockSizeNew))
 
     def build_gui(self):
         """Build the GUI"""
-    
+
         self.root.title('tapeimgr')
         self.root.option_add('*tearOff', 'FALSE')
         self.grid(column=0, row=0, sticky='w')
@@ -134,7 +141,10 @@ class tapeimgrGUI(tk.Frame):
         # Entry elements
         ttk.Separator(self, orient='horizontal').grid(column=0, row=0, columnspan=4, sticky='ew')
         # Output Directory
-        self.outDirButton_entry = tk.Button(self, text='Select Output Directory', command=self.selectOutputDirectory, width=20)
+        self.outDirButton_entry = tk.Button(self,
+                                            text='Select Output Directory',
+                                            command=self.selectOutputDirectory,
+                                            width=20)
         self.outDirButton_entry.grid(column=0, row=3, sticky='w')
         self.outDirLabel = tk.Label(self, text=config.dirOut)
         self.outDirLabel.update()
@@ -189,85 +199,85 @@ class tapeimgrGUI(tk.Frame):
         ttk.Separator(self, orient='horizontal').grid(column=0, row=12, columnspan=4, sticky='ew')
 
         self.start_button = tk.Button(self,
-                                       text='Start',
-                                       width=10,
-                                       underline=0,
-                                       command=self.on_submit)
+                                      text='Start',
+                                      width=10,
+                                      underline=0,
+                                      command=self.on_submit)
         self.start_button.grid(column=1, row=13, sticky='e')
 
         self.quit_button = tk.Button(self,
-                                       text='Exit',
-                                       width=10,
-                                       underline=0,
-                                       command=self.on_quit)
+                                     text='Exit',
+                                     width=10,
+                                     underline=0,
+                                     command=self.on_quit)
         self.quit_button.grid(column=2, row=13, sticky='w', columnspan=2)
 
         ttk.Separator(self, orient='horizontal').grid(column=0, row=14, columnspan=4, sticky='ew')
 
         # Add ScrolledText widget to display logging info
-        st = ScrolledText.ScrolledText(self, state='disabled', height=15)
-        st.configure(font='TkFixedFont')
-        st['background'] = 'white'
-        st.grid(column=0, row=15, sticky='ew', columnspan=4)
-
-        # Create textLogger
-        self.text_handler = TextHandler(st)
+        self.st = ScrolledText.ScrolledText(self, state='disabled', height=15)
+        self.st.configure(font='TkFixedFont')
+        self.st['background'] = 'white'
+        self.st.grid(column=0, row=15, sticky='ew', columnspan=4)
 
        # Logging configuration
-        logging.basicConfig(filename='test.log',
-            level=logging.INFO, 
-            format='%(asctime)s - %(levelname)s - %(message)s')        
+        logging.basicConfig(filename=config.logFileName,
+                            level=logging.INFO,
+                            format='%(asctime)s - %(levelname)s - %(message)s')
 
         # Add the handler to logger
-        self.logger = logging.getLogger()        
-        self.logger.addHandler(self.text_handler)
-    
-        # Create log queue and task list
-        config.log_queue = queue.Queue()
-        config.task_list = []
+        self.logger = logging.getLogger()
+
+        # Create a logging handler using a queue
+        self.log_queue = queue.Queue(-1)
+        self.queue_handler = QueueHandler(self.log_queue)
+        # This sets the console output format (slightly different from basicConfig!)
+        formatter = logging.Formatter('%(levelname)s: %(message)s')
+        self.queue_handler.setFormatter(formatter)
+        self.logger.addHandler(self.queue_handler)
 
         # Define bindings for keyboard shortcuts: buttons
         self.root.bind_all('<Control-Key-s>', self.on_submit)
         self.root.bind_all('<Control-Key-e>', self.on_quit)
 
-        # TODO keyboard shortcuts for Radiobox selections: couldn't find ANY info on how to do this!
-
         for child in self.winfo_children():
             child.grid_configure(padx=5, pady=5)
 
-    def listen_queue(self):
-        """listen queue"""
-        while config.log_queue.qsize():
+    def display(self, record):
+        """Display log record in scrolledText widget"""
+        msg = self.queue_handler.format(record)
+        self.st.configure(state='normal')
+        self.st.insert(tk.END, msg + '\n', record.levelname)
+        self.st.configure(state='disabled')
+        # Autoscroll to the bottom
+        self.st.yview(tk.END)
+
+    def poll_log_queue(self):
+        """Check every 100ms if there is a new message in the queue to display"""
+        while True:
             try:
-                self.logger.warning(config.log_queue.get())
+                record = self.log_queue.get(block=False)
             except queue.Empty:
-                pass
+                break
+            else:
+                self.display(record)
+        self.after(100, self.poll_log_queue)
 
-    def listen(self, force_start=False):
-        """after loop - listener"""
-        self.listen_queue()
 
-        if config.task_list or force_start:
-            self.after(100, self.listen)
+class QueueHandler(logging.Handler):
+    """Class to send logging records to a queue
 
-class TextHandler(logging.Handler):
-    """This class allows you to log to a Tkinter Text or ScrolledText widget
-    Adapted from: https://gist.github.com/moshekaplan/c425f861de7bbf28ef06
+    It can be used from different threads
+    The ConsoleUi class polls this queue to display records in a ScrolledText widget
+    Taken from https://github.com/beenje/tkinter-logging-text-widget/blob/master/main.py
     """
 
-    def __init__(self, text):
-        """Run the regular Handler __init__"""
-        logging.Handler.__init__(self)
-        # Store a reference to the Text it will log to
-        self.text = text
+    def __init__(self, log_queue):
+        super().__init__()
+        self.log_queue = log_queue
 
     def emit(self, record):
-        msg = self.format(record)
-
-        self.text.configure(state='normal')
-        self.text.insert(tk.END, msg + '\n')
-        self.text.configure(state=tk.DISABLED)
-        self.text.yview(tk.END)
+        self.log_queue.put(record)
 
 
 def checkDirExists(dirIn):
@@ -303,14 +313,21 @@ def main():
 
     root = tk.Tk()
     tapeimgrGUI(root)
-    
+
     while True:
         try:
             root.update_idletasks()
             root.update()
             time.sleep(0.1)
         except KeyboardInterrupt:
-            break
+            msg = 'Completed processing this tape, click OK to continue or Cancel to quit'
+            continueFlag = tkMessageBox.askokcancel("Tape finished", msg)
+            if continueFlag:
+                # Restart the program
+                python = sys.executable
+                os.execl(python, python, * sys.argv)
+            else:
+                break
 
 if __name__ == "__main__":
     main()
