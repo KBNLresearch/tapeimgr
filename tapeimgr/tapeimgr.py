@@ -134,6 +134,14 @@ def processTape():
     # Write end date/time to log
     #dateEnd="$(date)"
     #logging.info('# End date/time ' + dateEnd)
+
+    config.finishedTape = True
+    
+    # Wait 2 seconds to avoid race condition
+    time.sleep(2)
+    # This triggers a KeyboardInterrupt in the main thread
+    thread.interrupt_main()
+
     return True
 
 

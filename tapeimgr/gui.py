@@ -87,6 +87,16 @@ class tapeimgrGUI(tk.Frame):
             self.start_button.config(state='disabled')
             self.quit_button.config(state='disabled')
 
+            # Launch tape processing function as subprocess
+            t1 = threading.Thread(target=tapeimgr.processTape, args=[])
+
+            """
+            # "kick start" listener if task list is empty
+            if not self.task_list:
+                self.listen(force_start=True)
+            """
+            t1.start()
+
     def setupLogging(self, handler):
         """Set up logging-related settings"""
         logFile = os.path.join('.', 'batch.log')
@@ -292,11 +302,11 @@ def main():
         root = tk.Tk()
         tapeimgrGUI(root)
         
-        t1 = threading.Thread(target=tapeimgr.worker, args=[])
-        t1.start()
+        #t1 = threading.Thread(target=tapeimgr.worker, args=[])
+        #t1.start()
 
         root.mainloop()
-        t1.join()
+        #t1.join()
     except KeyboardInterrupt:
         if config.finishedTape:
             # Tape finished: notify user
@@ -309,7 +319,8 @@ def main():
                 python = sys.executable
                 os.execl(python, python, * sys.argv)
             else:
-                t1.join()
+                pass
+                #t1.join()
 
 if __name__ == "__main__":
     main()
