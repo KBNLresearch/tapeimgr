@@ -98,17 +98,6 @@ class tapeimgrGUI(tk.Frame):
             
             t1.start()
 
-    def setupLogging(self, handler):
-        """Set up logging-related settings"""
-        logFile = os.path.join('.', 'batch.log')
-
-        logging.basicConfig(handlers=[logging.FileHandler(logFile, 'a', 'utf-8')],
-                            level=logging.INFO,
-                            format='%(asctime)s - %(levelname)s - %(message)s')
-
-        # Add the handler to logger
-        self.logger = logging.getLogger()
-        self.logger.addHandler(handler)
 
     def selectOutputDirectory(self):
         """Select output directory"""
@@ -247,7 +236,7 @@ class tapeimgrGUI(tk.Frame):
             child.grid_configure(padx=5, pady=5)
 
     def listen_queue(self):
-        #   listen queue
+        """listen queue"""
         while config.log_queue.qsize():
             try:
                 self.logger.warning(config.log_queue.get())
@@ -255,14 +244,11 @@ class tapeimgrGUI(tk.Frame):
                 pass
 
     def listen(self, force_start=False):
-        #   "after" loop - listener
+        """after loop - listener"""
         self.listen_queue()
 
         if config.task_list or force_start:
-            print('Listener: Listen')
             self.after(100, self.listen)
-        else:
-            print('Listener: Off')
 
 class TextHandler(logging.Handler):
     """This class allows you to log to a Tkinter Text or ScrolledText widget
@@ -282,20 +268,6 @@ class TextHandler(logging.Handler):
         self.text.insert(tk.END, msg + '\n')
         self.text.configure(state=tk.DISABLED)
         self.text.yview(tk.END)
-
-    def emitOld(self, record):
-        """Add a record to the widget"""
-        msg = self.format(record)
-
-        def append():
-            """Append text"""
-            self.text.configure(state='normal')
-            self.text.insert(tk.END, msg + '\n')
-            self.text.configure(state='disabled')
-            # Autoscroll to the bottom
-            self.text.yview(tk.END)
-        # This is necessary because we can't modify the Text from other threads
-        self.text.after(0, append)
 
 
 def checkDirExists(dirIn):
@@ -325,32 +297,6 @@ def get_main_dir():
         return os.path.dirname(sys.executable)
     return os.path.dirname(sys.argv[0])
 
-def mainOld():
-    """Main function"""
-
-    try:
-        root = tk.Tk()
-        tapeimgrGUI(root)
-        
-        #t1 = threading.Thread(target=tapeimgr.worker, args=[])
-        #t1.start()
-
-        root.mainloop()
-        #t1.join()
-    except KeyboardInterrupt:
-        if config.finishedTape:
-            # Tape finished: notify user
-            # TODO: for some reason the dialog doesn't show up until user moves the mouse or
-            # presses the keyboard. Very odd ... 
-            msg = 'Completed processing this tape, click OK to continue or Cancel to quit'
-            continueFlag = tkMessageBox.askokcancel("Tape finished", msg)
-            if continueFlag:
-                # Restart the program
-                python = sys.executable
-                os.execl(python, python, * sys.argv)
-            else:
-                pass
-                #t1.join()
 
 def main():
     """Main function"""
@@ -358,16 +304,12 @@ def main():
     root = tk.Tk()
     tapeimgrGUI(root)
     
-    #t1 = threading.Thread(target=tapeimgr.worker, args=[])
-    #t1.start()
-
     while True:
         try:
             root.update_idletasks()
             root.update()
             time.sleep(0.1)
         except KeyboardInterrupt:
-            print('got interrupt')
             break
 
 if __name__ == "__main__":
