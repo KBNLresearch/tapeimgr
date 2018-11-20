@@ -13,6 +13,7 @@ import imp
 import time
 import threading
 import logging
+import queue
 import tkinter as tk
 from tkinter import filedialog as tkFileDialog
 from tkinter import scrolledtext as ScrolledText
@@ -88,13 +89,13 @@ class tapeimgrGUI(tk.Frame):
             self.quit_button.config(state='disabled')
 
             # Launch tape processing function as subprocess
-            t1 = threading.Thread(target=tapeimgr.processTape, args=[])
-
-            """
+            #t1 = threading.Thread(target=tapeimgr.processTape, args=[])
+            t1 = threading.Thread(target=tapeimgr.test, args=[])
+            
             # "kick start" listener if task list is empty
-            if not self.task_list:
+            if not config.task_list:
                 self.listen(force_start=True)
-            """
+            
             t1.start()
 
     def setupLogging(self, handler):
@@ -106,8 +107,8 @@ class tapeimgrGUI(tk.Frame):
                             format='%(asctime)s - %(levelname)s - %(message)s')
 
         # Add the handler to logger
-        logger = logging.getLogger()
-        logger.addHandler(handler)
+        self.logger = logging.getLogger()
+        self.logger.addHandler(handler)
 
     def selectOutputDirectory(self):
         """Select output directory"""
@@ -229,8 +230,12 @@ class tapeimgrGUI(tk.Frame):
             format='%(asctime)s - %(levelname)s - %(message)s')        
 
         # Add the handler to logger
-        logger = logging.getLogger()        
-        logger.addHandler(self.text_handler)
+        self.logger = logging.getLogger()        
+        self.logger.addHandler(self.text_handler)
+    
+        # Create log queue and task list
+        config.log_queue = queue.Queue()
+        config.task_list = []
 
         # Define bindings for keyboard shortcuts: buttons
         self.root.bind_all('<Control-Key-s>', self.on_submit)
@@ -241,6 +246,23 @@ class tapeimgrGUI(tk.Frame):
         for child in self.winfo_children():
             child.grid_configure(padx=5, pady=5)
 
+    def listen_queue(self):
+        #   listen queue
+        while config.log_queue.qsize():
+            try:
+                self.logger.warning(config.log_queue.get())
+            except queue.Empty:
+                pass
+
+    def listen(self, force_start=False):
+        #   "after" loop - listener
+        self.listen_queue()
+
+        if config.task_list or force_start:
+            print('Listener: Listen')
+            self.after(100, self.listen)
+        else:
+            print('Listener: Off')
 
 class TextHandler(logging.Handler):
     """This class allows you to log to a Tkinter Text or ScrolledText widget
@@ -254,6 +276,14 @@ class TextHandler(logging.Handler):
         self.text = text
 
     def emit(self, record):
+        msg = self.format(record)
+
+        self.text.configure(state='normal')
+        self.text.insert(tk.END, msg + '\n')
+        self.text.configure(state=tk.DISABLED)
+        self.text.yview(tk.END)
+
+    def emitOld(self, record):
         """Add a record to the widget"""
         msg = self.format(record)
 
@@ -295,7 +325,7 @@ def get_main_dir():
         return os.path.dirname(sys.executable)
     return os.path.dirname(sys.argv[0])
 
-def main():
+def mainOld():
     """Main function"""
 
     try:
@@ -321,6 +351,24 @@ def main():
             else:
                 pass
                 #t1.join()
+
+def main():
+    """Main function"""
+
+    root = tk.Tk()
+    tapeimgrGUI(root)
+    
+    #t1 = threading.Thread(target=tapeimgr.worker, args=[])
+    #t1.start()
+
+    while True:
+        try:
+            root.update_idletasks()
+            root.update()
+            time.sleep(0.1)
+        except KeyboardInterrupt:
+            print('got interrupt')
+            break
 
 if __name__ == "__main__":
     main()

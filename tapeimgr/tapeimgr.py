@@ -31,6 +31,9 @@ def generate_file_sha512(fileIn):
             m.update(buf)
     return m.hexdigest()
 
+def put_line_to_queue(log_queue, log_line=''):
+    """put log line to queue"""
+    log_queue.put(log_line)
 
 def checksumDirectory(directory):
     """Calculate checksums for all files in directory"""
@@ -199,6 +202,14 @@ def findBlocksize(blockSizeInit):
     """Find block size, starting from blockSizeInit"""
     blockSize = 9999
     return blockSize
+
+def test():
+    logLine = 'Test test test test'
+    put_line_to_queue(config.log_queue, logLine)
+    # Wait 2 seconds to avoid race condition
+    time.sleep(2)
+    # This triggers a KeyboardInterrupt in the main thread
+    thread.interrupt_main()
 
 def worker():
     # Skeleton worker function, runs in separate thread (see below)   
