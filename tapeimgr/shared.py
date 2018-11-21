@@ -32,8 +32,14 @@ def launchSubProcess(args):
     # Logging
     cmdName = args[0]
     logging.info('Command: ' + ''.join(args))
-    logging.info(cmdName + 'status: ' + str(exitStatus))
-    logging.info(cmdName + 'stdout:\n' + outputAsString)
-    logging.info(cmdName + 'stdout:\n' + errorsAsString)
+
+    if exitStatus == 0:
+        logging.info(cmdName + 'status: ' + str(exitStatus))
+        logging.info(cmdName + 'stdout:\n' + outputAsString)
+        logging.info(cmdName + 'stdout:\n' + errorsAsString)
+    else:
+        logging.error(cmdName + 'status: ' + str(exitStatus))
+        logging.error(cmdName + 'stdout:\n' + outputAsString)
+        logging.error(cmdName + 'stdout:\n' + errorsAsString)
 
     return(exitStatus, outputAsString, errorsAsString)
