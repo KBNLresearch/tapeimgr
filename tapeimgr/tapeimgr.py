@@ -63,6 +63,7 @@ class Tape:
         self.dirOut = ''
         self.tapeDevice = ''
         self.initBlocksize = ''
+        self.sessions = ''
         self.prefix = ''
         self.extension = ''
         self.fillBlocks = ''
@@ -220,3 +221,4 @@ class Tape:
         """Find block size, starting from blockSizeInit"""
         self.blockSize = 9999
         return self.blockSize
+        

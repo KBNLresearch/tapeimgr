@@ -41,6 +41,8 @@ class tapeimgrGUI(tk.Frame):
         self.logFileName = config.logFileName
         self.tapeDevice = config.tapeDevice
         self.initBlocksize = config.initBlocksize
+        self.sessions = ''
+        self.logFile = ''
         self.prefix = config.prefix
         self.extension = config.extension
         self.fillBlocks = config.fillBlocks
@@ -239,14 +241,14 @@ class tapeimgrGUI(tk.Frame):
         self.st.configure(font='TkFixedFont')
         self.st['background'] = 'white'
         self.st.grid(column=0, row=15, sticky='ew', columnspan=4)
-    
+
         # Define bindings for keyboard shortcuts: buttons
         self.root.bind_all('<Control-Key-s>', self.on_submit)
         self.root.bind_all('<Control-Key-e>', self.on_quit)
 
         for child in self.winfo_children():
             child.grid_configure(padx=5, pady=5)
-        
+
     def setupLogger(self):
         """Set up logger configuration"""
 
@@ -257,7 +259,7 @@ class tapeimgrGUI(tk.Frame):
 
         # Add the handler to logger
         self.logger = logging.getLogger()
-    
+
         # Create a logging handler using a queue
         self.log_queue = queue.Queue(-1)
         self.queue_handler = QueueHandler(self.log_queue)
