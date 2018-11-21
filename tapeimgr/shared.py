@@ -31,15 +31,15 @@ def launchSubProcess(args):
     
     # Logging
     cmdName = args[0]
-    logging.info('Command: ' + ''.join(args))
+    logging.info('Command: ' + ' '.join(args))
 
     if exitStatus == 0:
-        logging.info(cmdName + 'status: ' + str(exitStatus))
-        logging.info(cmdName + 'stdout:\n' + outputAsString)
-        logging.info(cmdName + 'stdout:\n' + errorsAsString)
+        logging.info(cmdName + ' status: ' + str(exitStatus))
+        logging.info(cmdName + ' stdout:\n' + outputAsString)
+        logging.info(cmdName + ' stderr:\n' + errorsAsString)
     else:
-        logging.error(cmdName + 'status: ' + str(exitStatus))
-        logging.error(cmdName + 'stdout:\n' + outputAsString)
-        logging.error(cmdName + 'stdout:\n' + errorsAsString)
+        logging.error(cmdName + ' status: ' + str(exitStatus))
+        logging.error(cmdName + ' stdout:\n' + outputAsString)
+        logging.error(cmdName + ' stderr:\n' + errorsAsString)
 
     return(exitStatus, outputAsString, errorsAsString)

@@ -119,7 +119,6 @@ class Tape:
         args.append('-f')
         args.append(self.tapeDevice)
         args.append('status')
-    
         mtStatus, mtOut, mtErr = shared.launchSubProcess(args)
 
         # Split sessions string to list
@@ -155,14 +154,21 @@ class Tape:
 
         # Rewind and eject the tape
         logging.info('# Rewinding tape')
-        #mt -f "$tapeDevice" rewind 2>&1 | tee -a "$logFile"
+
+        args = ['mt']
+        args.append('-f')
+        args.append(self.tapeDevice)
+        args.append('rewind')
+        mtStatus, mtOut, mtErr = shared.launchSubProcess(args)
+  
         logging.info('# Ejecting tape')
-        #mt -f "$tapeDevice" eject 2>&1 | tee -a "$logFile"
-
-        # Write end date/time to log
-        #dateEnd="$(date)"
-        #logging.info('# End date/time ' + dateEnd)
-
+  
+        args = ['mt']
+        args.append('-f')
+        args.append(self.tapeDevice)
+        args.append('eject')
+        mtStatus, mtOut, mtErr = shared.launchSubProcess(args)
+  
         self.finishedTape = True
 
         # Wait 2 seconds to avoid race condition
@@ -185,36 +191,48 @@ class Tape:
             # Name of output file for this session
             ofName = self.prefix + str(self.session).zfill(6) + '.' + self.extension
             ofName = os.path.join(self.dirOut, ofName)
-            #ofName = "$dirOut"/""$prefix""`printf "%06g" "$session"`."$extension"
 
             logging.info('# Extracting session # ' + str(self.session) + ' to file ' + ofName)
 
+            args = ['dd']
+            args.append('if=' + self.tapeDevice)
+            args.append('of='+ ofName)
+            args.append('bs=' + str(self.blockSize))
+        
             if self.fillBlocks == 1:
-                # Invoke dd with conv=noerror,sync options
-                pass
-                #dd if="$tapeDevice" of="$ofName" bs="$bSize" conv=noerror,sync >> "$logFile" 2>&1
-            else:
-                pass
-                #dd if="$tapeDevice" of="$ofName" bs="$bSize" >> "$logFile" 2>&1
+                # Add conv=noerror,sync options to argument list
+                args.append('conv=noerror,sync')
 
-            #ddStatus="$?"
-            #echo "# dd exit code = " "$ddStatus" | tee -a "$logFile"
+            ddStatus, ddOut, ddErr = shared.launchSubProcess(args)
+
         else:
             # Fast-forward tape to next session
-            pass
             logging.info('# Skipping session # ' + str(self.session) + ', fast-forward to next session')
-            #mt -f "$tapeDevice" fsf 1 >> "$logFile" 2>&1
+        
+            args = ['mt']
+            args.append('-f')
+            args.append(self.tapeDevice)
+            args.append('fsf')
+            args.append('1')
+            mtStatus, mtOut, mtErr = shared.launchSubProcess(args)
 
         # Try to position tape 1 record forward; if this fails this means
         # the end of the tape was reached
-        #mt -f "$tapeDevice" fsr 1 >> "$logFile" 2>&1
-        mtStatus = 0 # TODO, change to actual status!
-        logging.info('mt exit code = ' + str(mtStatus))
+        args = ['mt']
+        args.append('-f')
+        args.append(self.tapeDevice)
+        args.append('fsr')
+        args.append('1')
+        mtStatus, mtOut, mtErr = shared.launchSubProcess(args)
 
         if mtStatus == 0:
             # Another session exists. Position tape one record backward
-            #mt -f "$tapeDevice" bsr 1 >> "$logFile" 2>&1
-            pass
+            args = ['mt']
+            args.append('-f')
+            args.append(self.tapeDevice)
+            args.append('bsr')
+            args.append('1')
+            mtStatus, mtOut, mtErr = shared.launchSubProcess(args)
         else:
             # No further sessions, end of tape reached
             logging.info('# Reached end of tape')
