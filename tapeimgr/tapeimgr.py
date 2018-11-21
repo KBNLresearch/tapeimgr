@@ -97,13 +97,13 @@ class Tape:
         # Write some general info to log file
         logging.info('*** Tape extraction log ***')
         logging.info('# User input')
-        logging.info('dirOut = ' + self.dirOut)
-        logging.info('tapeDevice = ' + self.tapeDevice)
-        logging.info('initial blockSize = ' + self.initBlocksize)
-        logging.info('sessions = ' + self.sessions)
-        logging.info('prefix = ' + self.prefix)
-        logging.info('extension = ' + self.extension)
-        logging.info('fill blocks = ' + str(self.fillBlocks))
+        logging.info('dirOut: ' + self.dirOut)
+        logging.info('tapeDevice: ' + self.tapeDevice)
+        logging.info('initial blockSize: ' + self.initBlocksize)
+        logging.info('sessions: ' + self.sessions)
+        logging.info('prefix: ' + self.prefix)
+        logging.info('extension: ' + self.extension)
+        logging.info('fill blocks: ' + str(self.fillBlocks))
 
         if self.fillBlocks == 1:
             # dd's conv=sync flag results in padding bytes for each block if block
@@ -113,9 +113,14 @@ class Tape:
             logging.info('Reset initial block size to 512 because -f flag is used')
 
         # Get tape status, output to log file
-        logging.info('# Tape status')
-        # TODO insert mt call
-        # mt -f "$tapeDevice" status | tee -a "$logFile"
+        logging.info('# Getting tape status')
+
+        args = ['mt']
+        args.append('-f')
+        args.append(self.tapeDevice)
+        args.append('status')
+    
+        mtStatus, mtOut, mtErr = shared.launchSubProcess(args)
 
         # Split sessions string to list
         try:
@@ -221,4 +226,3 @@ class Tape:
         """Find block size, starting from blockSizeInit"""
         self.blockSize = 9999
         return self.blockSize
-        

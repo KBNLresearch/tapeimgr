@@ -2,10 +2,8 @@
 """Shared functions module"""
 
 import os
+import logging
 import subprocess as sub
-import string
-from random import choice
-
 
 def launchSubProcess(args):
     """Launch subprocess and return exit code, stdout and stderr"""
@@ -13,7 +11,9 @@ def launchSubProcess(args):
         # Execute command line; stdout + stderr redirected to objects
         # 'output' and 'errors'.
         # Setting shell=True avoids console window poppong up with pythonw
-        p = sub.Popen(args, stdout=sub.PIPE, stderr=sub.PIPE, shell=True)
+        # BUT shell=True is not working with argument lists,
+        # see https://stackoverflow.com/a/26417712/1209004
+        p = sub.Popen(args, stdout=sub.PIPE, stderr=sub.PIPE, shell=False)
         output, errors = p.communicate()
 
         # Decode to UTF8
@@ -28,32 +28,12 @@ def launchSubProcess(args):
         exitStatus = -99
         outputAsString = ""
         errorsAsString = ""
+    
+    # Logging
+    cmdName = args[0]
+    logging.info('Command: ' + ''.join(args))
+    logging.info(cmdName + 'status: ' + str(exitStatus))
+    logging.info(cmdName + 'stdout:\n' + outputAsString)
+    logging.info(cmdName + 'stdout:\n' + errorsAsString)
 
     return(exitStatus, outputAsString, errorsAsString)
-
-
-def randomString(length):
-    """Generate text string with random characters (a-z;A-Z;0-9)"""
-    return ''.join(choice(string.ascii_letters + string.digits) for i in range(length))
-
-
-def index_startswith_substring(the_list, substring):
-    """What is this? What is it used for?"""
-    for i, s in enumerate(the_list):
-        if s.startswith(substring):
-            return i
-    return -1
-
-
-class cd:
-    """Context manager for changing the current working directory"""
-    # Source: http://stackoverflow.com/a/13197763
-    def __init__(self, newPath):
-        self.newPath = os.path.expanduser(newPath)
-
-    def __enter__(self):
-        self.savedPath = os.getcwd()
-        os.chdir(self.newPath)
-
-    def __exit__(self, etype, value, traceback):
-        os.chdir(self.savedPath)
