@@ -33,7 +33,7 @@ def checksumDirectory(directory):
     """Calculate checksums for all files in directory"""
 
     # All files in directory
-    allFiles = glob.glob(directory + "/*." + config.extension)
+    allFiles = glob.glob(directory + "/*." + extension)
 
     # Dictionary for storing results
     checksums = {}
@@ -55,7 +55,7 @@ def checksumDirectory(directory):
 
     return wroteChecksums
 
-def processTape():
+def processTape(dirOut, tapeDevice, initBlocksize, sessions, prefix, extension, fillBlocks):
     """Process a tape"""
     # TODO: add actual calls to mt
 
@@ -66,19 +66,19 @@ def processTape():
     #dateStart="$(date)"
     #logging.info('# Start date/time ' + dateStart)
     logging.info('# User input')
-    logging.info('dirOut = ' + config.dirOut)
-    logging.info('tapeDevice = ' + config.tapeDevice)
-    logging.info('initial blockSize = ' + config.initBlocksize)
-    logging.info('sessions = ' + config.sessions)
-    logging.info('prefix = ' + config.prefix)
-    logging.info('extension = ' + config.extension)
-    logging.info('fill blocks = ' + str(config.fillBlocks))
+    logging.info('dirOut = ' + dirOut)
+    logging.info('tapeDevice = ' + tapeDevice)
+    logging.info('initial blockSize = ' + initBlocksize)
+    logging.info('sessions = ' + sessions)
+    logging.info('prefix = ' + prefix)
+    logging.info('extension = ' + extension)
+    logging.info('fill blocks = ' + str(fillBlocks))
 
-    if config.fillBlocks == 1:
+    if fillBlocks == 1:
         # dd's conv=sync flag results in padding bytes for each block if block
         # size is too large, so override user-defined value with default
         # if -f flag was used
-        config.initBlocksize = 512
+        initBlocksize = 512
         logging.info('Reset initial block size to 512 because -f flag is used')
 
     # Flag that indicates end of tape was reached
@@ -93,9 +93,9 @@ def processTape():
 
     # Split sessions string to list
     try:
-        sessions = [int(i) for i in config.sessions.split(',')]
+        sessions = [int(i) for i in sessions.split(',')]
     except ValueError:
-        # config.sessions is empty string or invalid input
+        # sessions is empty string or invalid input
         sessions = []
 
     # Iterate over all sessions on tape until end is detected
@@ -120,7 +120,7 @@ def processTape():
 
     # Create checksum file
     logging.info('# Creating checksum file')
-    checksumStatus = checksumDirectory(os.path.normpath(config.dirOut))
+    checksumStatus = checksumDirectory(os.path.normpath(dirOut))
 
     # Rewind and eject the tape
     logging.info('# Rewinding tape')
@@ -132,7 +132,7 @@ def processTape():
     #dateEnd="$(date)"
     #logging.info('# End date/time ' + dateEnd)
 
-    config.finishedTape = True
+    finishedTape = True
 
     # Wait 2 seconds to avoid race condition
     time.sleep(2)
@@ -148,17 +148,17 @@ def processSession(sessionNumber, extractSessionFlag):
 
     if extractSessionFlag:
         # Determine block size for this session
-        blockSize = findBlocksize(config.initBlocksize)
+        blockSize = findBlocksize(initBlocksize)
         logging.info('Block size = ' + str(blockSize))
 
         # Name of output file for this session
-        ofName = config.prefix + str(sessionNumber).zfill(6) + '.' + config.extension
-        ofName = os.path.join(config.dirOut, ofName)
+        ofName = prefix + str(sessionNumber).zfill(6) + '.' + extension
+        ofName = os.path.join(dirOut, ofName)
         #ofName = "$dirOut"/""$prefix""`printf "%06g" "$session"`."$extension"
 
         logging.info('# Extracting session # ' + str(sessionNumber) + ' to file ' + ofName)
 
-        if config.fillBlocks == 1:
+        if fillBlocks == 1:
             # Invoke dd with conv=noerror,sync options
             pass
             #dd if="$tapeDevice" of="$ofName" bs="$bSize" conv=noerror,sync >> "$logFile" 2>&1
