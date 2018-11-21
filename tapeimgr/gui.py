@@ -62,8 +62,6 @@ class tapeimgrGUI(tk.Frame):
         self.fillBlocks = self.fBlocks.get()
         self.logFile = os.path.join(self.dirOut, self.logFileName)
 
-        print(self.tapeDevice, self.initBlocksize, self.prefix, self.extension, self.fillBlocks)
-
         # Check if block size is valid (i.e. a multiple of 512)
         blocksizeValid = False
         try:
@@ -107,9 +105,17 @@ class tapeimgrGUI(tk.Frame):
             # Start polling log messages from the queue
             self.after(100, self.poll_log_queue)
 
+            ## TEST
+            print(self.dirOut, self.tapeDevice, str(self.initBlocksize), self.sessions, self.prefix, self.extension, str(self.fillBlocks))
+            ## TEST
+
+            # Create Tape class instance
+            myTape = tapeimgr.Tape()
+
             # Launch tape processing function as subprocess
-            t1 = threading.Thread(target=tapeimgr.processTape,
-                                  args=[self.dirOut,
+            t1 = threading.Thread(target=tapeimgr.Tape.processTape,
+                                  args=[myTape,
+                                        self.dirOut,
                                         self.tapeDevice,
                                         self.initBlocksize,
                                         self.sessions,
