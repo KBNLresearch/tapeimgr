@@ -1,7 +1,6 @@
 #! /usr/bin/env python3
 """Shared functions module"""
 
-import os
 import logging
 import subprocess as sub
 
@@ -28,7 +27,7 @@ def launchSubProcess(args):
         exitStatus = -99
         outputAsString = ""
         errorsAsString = ""
-    
+
     # Logging
     cmdName = args[0]
     logging.info('Command: ' + ' '.join(args))

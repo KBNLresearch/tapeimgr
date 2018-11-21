@@ -19,7 +19,7 @@ from tkinter import filedialog as tkFileDialog
 from tkinter import scrolledtext as ScrolledText
 from tkinter import messagebox as tkMessageBox
 from tkinter import ttk
-from . import tapeimgr
+from .tapeimgr import Tape
 from . import config
 
 
@@ -40,7 +40,7 @@ class tapeimgrGUI(tk.Frame):
         self.dirOut = os.path.expanduser("~")
         self.logFileName = config.logFileName
         self.tapeDevice = config.tapeDevice
-        self.initBlocksize = config.initBlocksize
+        self.initBlockSize = config.initBlockSize
         self.sessions = ''
         self.logFile = ''
         self.prefix = config.prefix
@@ -57,7 +57,7 @@ class tapeimgrGUI(tk.Frame):
 
         # Fetch entered values (strip any leading / traling whitespace characters)
         self.tapeDevice = self.tapeDevice_entry.get().strip()
-        self.initBlocksize = self.initBlocksize_entry.get().strip()
+        self.initBlockSize = self.initBlockSize_entry.get().strip()
         self.sessions = self.sessions_entry.get().strip()
         self.prefix = self.prefix_entry.get().strip()
         self.extension = self.extension_entry.get().strip()
@@ -67,7 +67,7 @@ class tapeimgrGUI(tk.Frame):
         # Check if block size is valid (i.e. a multiple of 512)
         blocksizeValid = False
         try:
-            noBlocks = (int(self.initBlocksize)/512)
+            noBlocks = (int(self.initBlockSize)/512)
 
             if not noBlocks.is_integer():
                 msg = "Initial block size must be a multiple of 512"
@@ -108,18 +108,18 @@ class tapeimgrGUI(tk.Frame):
             self.after(100, self.poll_log_queue)
 
             ## TEST
-            print(self.dirOut, self.tapeDevice, str(self.initBlocksize), self.sessions, self.prefix, self.extension, str(self.fillBlocks))
+            print(self.dirOut, self.tapeDevice, str(self.initBlockSize), self.sessions, self.prefix, self.extension, str(self.fillBlocks))
             ## TEST
 
             # Create Tape class instance
-            myTape = tapeimgr.Tape()
+            myTape = Tape()
 
             # Launch tape processing function as subprocess
-            t1 = threading.Thread(target=tapeimgr.Tape.processTape,
+            t1 = threading.Thread(target=Tape.processTape,
                                   args=[myTape,
                                         self.dirOut,
                                         self.tapeDevice,
-                                        self.initBlocksize,
+                                        self.initBlockSize,
                                         self.sessions,
                                         self.prefix,
                                         self.extension,
@@ -137,17 +137,17 @@ class tapeimgrGUI(tk.Frame):
 
     def decreaseBlocksize(self):
         """Decrease value of initBlockSize"""
-        blockSizeOld = int(self.initBlocksize_entry.get().strip())
+        blockSizeOld = int(self.initBlockSize_entry.get().strip())
         blockSizeNew = max(blockSizeOld - 512, 512)
-        self.initBlocksize_entry.delete(0, tk.END)
-        self.initBlocksize_entry.insert(tk.END, str(blockSizeNew))
+        self.initBlockSize_entry.delete(0, tk.END)
+        self.initBlockSize_entry.insert(tk.END, str(blockSizeNew))
 
     def increaseBlocksize(self):
         """Increase value of initBlockSize"""
-        blockSizeOld = int(self.initBlocksize_entry.get().strip())
+        blockSizeOld = int(self.initBlockSize_entry.get().strip())
         blockSizeNew = blockSizeOld + 512
-        self.initBlocksize_entry.delete(0, tk.END)
-        self.initBlocksize_entry.insert(tk.END, str(blockSizeNew))
+        self.initBlockSize_entry.delete(0, tk.END)
+        self.initBlockSize_entry.insert(tk.END, str(blockSizeNew))
 
     def build_gui(self):
         """Build the GUI"""
@@ -183,10 +183,10 @@ class tapeimgrGUI(tk.Frame):
 
         # Initial Block Size
         tk.Label(self, text='Initial Block Size').grid(column=0, row=7, sticky='w')
-        self.initBlocksize_entry = tk.Entry(self, width=20)
-        self.initBlocksize_entry['background'] = 'white'
-        self.initBlocksize_entry.insert(tk.END, self.initBlocksize)
-        self.initBlocksize_entry.grid(column=1, row=7, sticky='w')
+        self.initBlockSize_entry = tk.Entry(self, width=20)
+        self.initBlockSize_entry['background'] = 'white'
+        self.initBlockSize_entry.insert(tk.END, self.initBlockSize)
+        self.initBlockSize_entry.grid(column=1, row=7, sticky='w')
         self.decreaseBSButton = tk.Button(self, text='-', command=self.decreaseBlocksize, width=1)
         self.decreaseBSButton.grid(column=2, row=7, sticky='e')
         self.increaseBSButton = tk.Button(self, text='+', command=self.increaseBlocksize, width=1)

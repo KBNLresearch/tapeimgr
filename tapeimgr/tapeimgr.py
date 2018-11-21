@@ -10,7 +10,6 @@ import hashlib
 import logging
 import _thread as thread
 from . import shared
-from . import config
 
 def generate_file_sha512(fileIn):
     """Generate sha512 hash of file"""
@@ -62,21 +61,21 @@ class Tape:
         # Input collected by GUI / CLI
         self.dirOut = ''
         self.tapeDevice = ''
-        self.initBlocksize = ''
+        self.initBlockSize = ''
         self.sessions = ''
         self.prefix = ''
         self.extension = ''
         self.fillBlocks = ''
-        # Flag that indicates end of tape was reached
+        # Miscellaneous attributes
         self.endOfTape = False
-        # Session index
         self.session = 1
         self.sessionsList = []
+        self.blockSize = ''
 
     def processTape(self,
                     dirOut,
                     tapeDevice,
-                    initBlocksize,
+                    initBlockSize,
                     sessions,
                     prefix,
                     extension,
@@ -88,7 +87,7 @@ class Tape:
 
         self.dirOut = os.path.normpath(dirOut)
         self.tapeDevice = tapeDevice
-        self.initBlocksize = initBlocksize
+        self.initBlockSize = initBlockSize
         self.sessions = sessions
         self.prefix = prefix
         self.extension = extension
@@ -99,7 +98,7 @@ class Tape:
         logging.info('# User input')
         logging.info('dirOut: ' + self.dirOut)
         logging.info('tapeDevice: ' + self.tapeDevice)
-        logging.info('initial blockSize: ' + self.initBlocksize)
+        logging.info('initial blockSize: ' + self.initBlockSize)
         logging.info('sessions: ' + self.sessions)
         logging.info('prefix: ' + self.prefix)
         logging.info('extension: ' + self.extension)
@@ -109,7 +108,7 @@ class Tape:
             # dd's conv=sync flag results in padding bytes for each block if block
             # size is too large, so override user-defined value with default
             # if -f flag was used
-            self.initBlocksize = 512
+            self.initBlockSize = 512
             logging.info('Reset initial block size to 512 because -f flag is used')
 
         # Get tape status, output to log file
@@ -160,15 +159,15 @@ class Tape:
         args.append(self.tapeDevice)
         args.append('rewind')
         mtStatus, mtOut, mtErr = shared.launchSubProcess(args)
-  
+
         logging.info('# Ejecting tape')
-  
+
         args = ['mt']
         args.append('-f')
         args.append(self.tapeDevice)
         args.append('eject')
         mtStatus, mtOut, mtErr = shared.launchSubProcess(args)
-  
+
         self.finishedTape = True
 
         # Wait 2 seconds to avoid race condition
@@ -185,8 +184,9 @@ class Tape:
 
         if self.extractSession:
             # Determine block size for this session
-            self.blockSize = self.findBlocksize()
-            logging.info('Block size = ' + str(self.blockSize))
+            logging.info('# Establishing blockSize')
+            self.findBlockSize()
+            logging.info('Block size: ' + str(self.blockSize))
 
             # Name of output file for this session
             ofName = self.prefix + str(self.session).zfill(6) + '.' + self.extension
@@ -198,7 +198,7 @@ class Tape:
             args.append('if=' + self.tapeDevice)
             args.append('of='+ ofName)
             args.append('bs=' + str(self.blockSize))
-        
+
             if self.fillBlocks == 1:
                 # Add conv=noerror,sync options to argument list
                 args.append('conv=noerror,sync')
@@ -208,7 +208,7 @@ class Tape:
         else:
             # Fast-forward tape to next session
             logging.info('# Skipping session # ' + str(self.session) + ', fast-forward to next session')
-        
+
             args = ['mt']
             args.append('-f')
             args.append(self.tapeDevice)
@@ -240,7 +240,39 @@ class Tape:
 
         return True
 
-    def findBlocksize(self):
+    def findBlockSize(self):
         """Find block size, starting from blockSizeInit"""
-        self.blockSize = 9999
-        return self.blockSize
+
+        # Set blockSize to initBlockSize
+        self.blockSize = self.initBlockSize
+        # Flag that indicates block size was found
+        blockSizeFound = False
+
+        while not blockSizeFound:
+            # Try reading 1 block from tape
+            logging.info('# Guessing block size for session # ' +
+                         str(self.session)  + ', trial value ' +
+                         str(self.blockSize))
+
+            args = ['dd']
+            args.append('if=' + self.tapeDevice)
+            args.append('of=/dev/null')
+            args.append('bs=' + str(self.blockSize))
+            args.append('count=1')
+            ddStatus, ddOut, ddErr = shared.launchSubProcess(args)
+
+            # Position tape 1 record backward (i.e. to the start of this session)
+            #mt -f "$tapeDevice" bsr 1 >> "$logFile" 2>&1
+            args = ['mt']
+            args.append('-f')
+            args.append(self.tapeDevice)
+            args.append('bsr')
+            args.append('1')
+            mtStatus, mtOut, mtErr = shared.launchSubProcess(args)
+
+            if ddStatus == 0:
+                # Block size found
+                blockSizeFound = True
+            else:
+                # Try again with larger block size
+                self.blockSize += 512
