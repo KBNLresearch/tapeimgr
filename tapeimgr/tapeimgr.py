@@ -61,7 +61,7 @@ class Tape:
         # Input collected by GUI / CLI
         self.dirOut = ''
         self.tapeDevice = ''
-        self.initBlockSize = ''
+        self.initBlockSize = 0
         self.sessions = ''
         self.prefix = ''
         self.extension = ''
@@ -70,7 +70,7 @@ class Tape:
         self.endOfTape = False
         self.session = 1
         self.sessionsList = []
-        self.blockSize = ''
+        self.blockSize = 0
 
     def processTape(self,
                     dirOut,
@@ -87,7 +87,7 @@ class Tape:
 
         self.dirOut = os.path.normpath(dirOut)
         self.tapeDevice = tapeDevice
-        self.initBlockSize = initBlockSize
+        self.initBlockSize = int(initBlockSize)
         self.sessions = sessions
         self.prefix = prefix
         self.extension = extension
@@ -98,7 +98,7 @@ class Tape:
         logging.info('# User input')
         logging.info('dirOut: ' + self.dirOut)
         logging.info('tapeDevice: ' + self.tapeDevice)
-        logging.info('initial blockSize: ' + self.initBlockSize)
+        logging.info('initial blockSize: ' + str(self.initBlockSize))
         logging.info('sessions: ' + self.sessions)
         logging.info('prefix: ' + self.prefix)
         logging.info('extension: ' + self.extension)
@@ -275,4 +275,5 @@ class Tape:
                 blockSizeFound = True
             else:
                 # Try again with larger block size
+                print(type(self.blockSize))
                 self.blockSize += 512
