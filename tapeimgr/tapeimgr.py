@@ -165,6 +165,9 @@ class Tape:
 
             ddStatus, ddOut, ddErr = shared.launchSubProcess(args)
 
+            if ddStatus != 0:
+                self.successFlag = False
+
         else:
             # Fast-forward tape to next session
             logging.info('# Skipping session # ' + str(self.session) +
@@ -223,7 +226,6 @@ class Tape:
             ddStatus, ddOut, ddErr = shared.launchSubProcess(args)
 
             # Position tape 1 record backward (i.e. to the start of this session)
-            #mt -f "$tapeDevice" bsr 1 >> "$logFile" 2>&1
             args = ['mt']
             args.append('-f')
             args.append(self.tapeDevice)
