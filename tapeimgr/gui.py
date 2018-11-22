@@ -1,10 +1,10 @@
 #! /usr/bin/env python3
 """
-Script for automated reading of tape
+Tapeimgr, automated reading of tape
+Graphical user interface
 
 Author: Johan van der Knijff
 Research department,  KB / National Library of the Netherlands
-
 """
 
 import sys

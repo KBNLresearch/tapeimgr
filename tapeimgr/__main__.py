@@ -3,6 +3,7 @@
 
 """rtape.__main__: executed when rtape directory is called as script."""
 
+from .gui import main
 
-from .rtape import main
 main()
+
