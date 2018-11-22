@@ -79,6 +79,8 @@ class Tape:
             # Abort if tape device is not accessible
             self.tapeDeviceIOError = True
             self.successFlag = False
+            logging.critical('# Exiting because tape device is not accessible')
+            logging.info('# Success: ' + str(self.successFlag))
             # Wait 2 seconds to avoid race condition
             time.sleep(2)
             # This triggers a KeyboardInterrupt in the main thread
@@ -130,6 +132,13 @@ class Tape:
 
         self.finishedTape = True
 
+        logging.info('# Success: ' + str(self.successFlag))
+
+        if self.successFlag:
+            logging.info('# Tape processed successfully without errors')
+        else:
+            logging.error('# One or more errors occurred while processing tape, check log file for details')
+
         # Wait 2 seconds to avoid race condition
         time.sleep(2)
         # This triggers a KeyboardInterrupt in the main thread
@@ -167,6 +176,7 @@ class Tape:
 
             if ddStatus != 0:
                 self.successFlag = False
+                logging.error('# dd encountered an error while reading the tape')
 
         else:
             # Fast-forward tape to next session
