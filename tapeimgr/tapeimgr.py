@@ -189,7 +189,7 @@ class Tape:
             logging.info('Block size: ' + str(self.blockSize))
 
             # Name of output file for this session
-            ofName = self.prefix + str(self.session).zfill(6) + '.' + self.extension
+            ofName = (self.prefix + str(self.session)).zfill(8) + '.' + self.extension
             ofName = os.path.join(self.dirOut, ofName)
 
             logging.info('# Extracting session # ' + str(self.session) + ' to file ' + ofName)
