@@ -74,6 +74,12 @@ class tapeimgrGUI(tk.Frame):
                    'press OK to continue, otherwise press Cancel ')
             outDirConfirmFlag = tkMessageBox.askokcancel("Overwrite files?", msg)
 
+        # Check if dirOut is writable
+        dirOutIsWritable = os.access(self.dirOut, os.W_OK | os.X_OK)
+        if not dirOutIsWritable:
+            msg = ('Cannot write to directory ' + self.dirOut)
+            tkMessageBox.showerror("ERROR", msg)
+    
         # Check if block size is valid (i.e. a multiple of 512)
         blocksizeValid = False
         try:
@@ -97,7 +103,7 @@ class tapeimgrGUI(tk.Frame):
             sessionsValid = True
         else:
             try:
-                sessionsList = [int(i) for i in self.sessions.split(',')]
+                [int(i) for i in self.sessions.split(',')]
                 sessionsValid = True
             except ValueError:
                 # invalid input
@@ -105,7 +111,7 @@ class tapeimgrGUI(tk.Frame):
                 tkMessageBox.showerror("ERROR", msg)
                 sessionsValid = False
 
-        if outDirConfirmFlag and blocksizeValid and sessionsValid:
+        if (dirOutIsWritable and outDirConfirmFlag and blocksizeValid and sessionsValid):
 
             # Start logger
             successLogger = True
