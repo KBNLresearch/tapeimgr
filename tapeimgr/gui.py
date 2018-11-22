@@ -246,9 +246,13 @@ class tapeimgrGUI(tk.Frame):
         """Set up logger configuration"""
 
         # Basic configuration
-        logging.basicConfig(filename=self.logFile,
-                            level=logging.INFO,
-                            format='%(asctime)s - %(levelname)s - %(message)s')
+        try:
+            logging.basicConfig(filename=self.logFile,
+                                level=logging.INFO,
+                                format='%(asctime)s - %(levelname)s - %(message)s')
+        except OSError:
+            msg = ('error trying to write log file')
+            errorExit(msg)
 
         # Add the handler to logger
         self.logger = logging.getLogger()
@@ -303,13 +307,13 @@ def checkDirExists(dirIn):
     if not os.path.isdir(dirIn):
         msg = ('directory ' + dirIn + ' does not exist!')
         tkMessageBox.showerror("Error", msg)
-        sys.exit()
+        sys.exit(1)
 
 
 def errorExit(error):
     """Show error message in messagebox and then exit after user presses OK"""
     tkMessageBox.showerror("Error", error)
-    sys.exit()
+    sys.exit(1)
 
 
 def main_is_frozen():
