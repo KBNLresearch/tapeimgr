@@ -2,7 +2,10 @@
 """Shared functions module"""
 
 import logging
+import glob
+import hashlib
 import subprocess as sub
+
 
 def launchSubProcess(args):
     """Launch subprocess and return exit code, stdout and stderr"""
@@ -42,3 +45,47 @@ def launchSubProcess(args):
         logging.error(cmdName + ' stderr:\n' + errorsAsString)
 
     return(exitStatus, outputAsString, errorsAsString)
+
+
+def generate_file_sha512(fileIn):
+    """Generate sha512 hash of file"""
+
+    # fileIn is read in chunks to ensure it will work with (very) large files as well
+    # Adapted from: http://stackoverflow.com/a/1131255/1209004
+
+    blocksize = 2**20
+    m = hashlib.sha512()
+    with open(fileIn, "rb") as f:
+        while True:
+            buf = f.read(blocksize)
+            if not buf:
+                break
+            m.update(buf)
+    return m.hexdigest()
+
+
+def checksumDirectory(directory, extension):
+    """Calculate checksums for all files in directory"""
+
+    # All files in directory
+    allFiles = glob.glob(directory + "/*." + extension)
+
+    # Dictionary for storing results
+    checksums = {}
+
+    for fName in allFiles:
+        hashString = generate_file_sha512(fName)
+        checksums[fName] = hashString
+
+    # Write checksum file
+    try:
+        fChecksum = open(os.path.join(directory, "checksums.sha512"), "w", encoding="utf-8")
+        for fName in checksums:
+            lineOut = checksums[fName] + " " + os.path.basename(fName) + '\n'
+            fChecksum.write(lineOut)
+        fChecksum.close()
+        wroteChecksums = True
+    except IOError:
+        wroteChecksums = False
+
+    return wroteChecksums
