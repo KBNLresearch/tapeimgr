@@ -71,16 +71,16 @@ class tapeimgrGUI(tk.Frame):
             noBlocks = (int(self.initBlockSize)/512)
 
             if not noBlocks.is_integer():
-                msg = "Initial block size must be a multiple of 512"
+                msg = ('Initial block size must be a multiple of 512')
                 tkMessageBox.showerror("ERROR", msg)
             elif noBlocks == 0:
-                msg = "Initial block size cannot be 0"
+                msg = ('Initial block size cannot be 0')
                 tkMessageBox.showerror("ERROR", msg)
             else:
                 blocksizeValid = True
 
         except ValueError:
-            msg = "Initial block size must be a number"
+            msg = ('Initial block size must be a number')
             tkMessageBox.showerror("ERROR", msg)
 
         # Check if sessions entry is valid
@@ -92,7 +92,7 @@ class tapeimgrGUI(tk.Frame):
                 sessionsValid = True
             except ValueError:
                 # invalid input
-                msg = "Sessions value cannot be " + self.sessions
+                msg = ('Sessions value cannot be ' + self.sessions)
                 tkMessageBox.showerror("ERROR", msg)
                 sessionsValid = False
 
@@ -107,10 +107,6 @@ class tapeimgrGUI(tk.Frame):
 
             # Start polling log messages from the queue
             self.after(100, self.poll_log_queue)
-
-            ## TEST
-            # print(self.dirOut, self.tapeDevice, str(self.initBlockSize), self.sessions, self.prefix, self.extension, str(self.fillBlocks))
-            ## TEST
 
             # Launch tape processing function as subprocess
             t1 = threading.Thread(target=Tape.processTape,
@@ -305,7 +301,7 @@ class QueueHandler(logging.Handler):
 def checkDirExists(dirIn):
     """Check if directory exists and exit if not"""
     if not os.path.isdir(dirIn):
-        msg = "directory " + dirIn + " does not exist!"
+        msg = ('directory ' + dirIn + ' does not exist!')
         tkMessageBox.showerror("Error", msg)
         sys.exit()
 
@@ -344,16 +340,17 @@ def main():
         except KeyboardInterrupt:
             if myGUI.myTape.tapeDeviceIOError:
                 # Tape device not accessible
-                msg = 'Cannot access tape device ' + myGUI.myTape.tapeDevice + \
-                      '. Check that device exits, and that tapeimgr is run as root'
+                msg = ('Cannot access tape device ' + myGUI.myTape.tapeDevice +
+                       '. Check that device exits, and that tapeimgr is run as root')
                 errorExit(msg)
             elif myGUI.myTape.successFlag:
                 # Tape extraction completed with no errors
-                msg = 'Tape processed successfully without errors'
+                msg = ('Tape processed successfully without errors')
                 tkMessageBox.showinfo("Success", msg)
             else:
                 # Tape extraction resulted in errors
-                msg = 'One or more errors occurred while processing tape, check log file for details'
+                msg = ('One or more errors occurred while processing tape, '
+                       'check log file for details')
                 tkMessageBox.showwarning("Errors occurred", msg)
 
             # Restart the program

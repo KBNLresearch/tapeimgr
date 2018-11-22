@@ -104,7 +104,7 @@ class Tape:
                 self.extractSession = False
 
             # Call session processing function
-            resultSession = self.processSession()
+            self.processSession()
 
             # Increase session number
             self.session += 1
@@ -137,15 +137,13 @@ class Tape:
         if self.successFlag:
             logging.info('# Tape processed successfully without errors')
         else:
-            logging.error('# One or more errors occurred while processing tape, check log file for details')
+            logging.error('# One or more errors occurred while processing tape, \
+            check log file for details')
 
         # Wait 2 seconds to avoid race condition
         time.sleep(2)
         # This triggers a KeyboardInterrupt in the main thread
         thread.interrupt_main()
-
-        return True
-
 
     def processSession(self):
         """Process a session"""
@@ -211,8 +209,6 @@ class Tape:
             # No further sessions, end of tape reached
             logging.info('# Reached end of tape')
             self.endOfTape = True
-
-        return True
 
     def findBlockSize(self):
         """Find block size, starting from blockSizeInit"""
