@@ -180,7 +180,6 @@ class Tape:
 
     def processSession(self):
         """Process a session"""
-        # TODO: add actual calls to mt and dd
 
         if self.extractSession:
             # Determine block size for this session
@@ -189,7 +188,8 @@ class Tape:
             logging.info('Block size: ' + str(self.blockSize))
 
             # Name of output file for this session
-            ofName = (self.prefix + str(self.session)).zfill(8) + '.' + self.extension
+            paddingChars = max(10 - len(self.prefix), 0)
+            ofName = self.prefix + str(self.session).zfill(paddingChars) + '.' + self.extension
             ofName = os.path.join(self.dirOut, ofName)
 
             logging.info('# Extracting session # ' + str(self.session) + ' to file ' + ofName)
@@ -207,7 +207,8 @@ class Tape:
 
         else:
             # Fast-forward tape to next session
-            logging.info('# Skipping session # ' + str(self.session) + ', fast-forward to next session')
+            logging.info('# Skipping session # ' + str(self.session) +
+                         ', fast-forward to next session')
 
             args = ['mt']
             args.append('-f')
