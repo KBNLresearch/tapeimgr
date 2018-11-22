@@ -1,16 +1,17 @@
 #! /usr/bin/env python3
-"""This module contains iromlab's cdWorker code, i.e. the code that monitors
-the list of jobs (submitted from the GUI) and does the actual imaging and ripping
+"""This module contains the Tape class with functions that
+do the actual tape imaging.
 """
 
 import os
+import sys
 import time
 import logging
 import _thread as thread
 from . import shared
 
 class Tape:
-    """Batch class"""
+    """Tape class"""
     def __init__(self):
         """initialise Tape class instance"""
         # Input collected by GUI / CLI
@@ -22,6 +23,8 @@ class Tape:
         self.extension = ''
         self.fillBlocks = ''
         # Miscellaneous attributes
+        self.tapeDeviceIOError = False
+        self.successFlag = True
         self.endOfTape = False
         self.session = 1
         self.sessionsList = []
@@ -36,9 +39,6 @@ class Tape:
                     extension,
                     fillBlocks):
         """Process a tape"""
-        # TODO: add actual calls to mt
-
-        print("entering processTape")
 
         self.dirOut = os.path.normpath(dirOut)
         self.tapeDevice = tapeDevice
@@ -75,6 +75,16 @@ class Tape:
         args.append('status')
         mtStatus, mtOut, mtErr = shared.launchSubProcess(args)
 
+        if mtStatus != 0:
+            # Abort if tape device is not accessible
+            self.tapeDeviceIOError = True
+            self.successFlag = False
+            # Wait 2 seconds to avoid race condition
+            time.sleep(2)
+            # This triggers a KeyboardInterrupt in the main thread
+            thread.interrupt_main()
+            sys.exit()
+
         # Split sessions string to list
         try:
             self.sessionsList = [int(i) for i in self.sessions.split(',')]
@@ -83,9 +93,7 @@ class Tape:
             self.sessionsList = []
 
         # Iterate over all sessions on tape until end is detected
-        # TODO remove session < 10 limit
-        while not self.endOfTape and self.session < 10:
-            print("session = " + str(self.session))
+        while not self.endOfTape:
             # Only extract sessions defined by sessions parameter
             # (if session parameter is empty all sessions are extracted)
             if self.session in self.sessionsList or self.sessionsList == []:
@@ -93,11 +101,8 @@ class Tape:
             else:
                 self.extractSession = False
 
-            print("extractSession = " + str(self.extractSession))
-
             # Call session processing function
             resultSession = self.processSession()
-            print("Processing session")
 
             # Increase session number
             self.session += 1

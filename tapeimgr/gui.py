@@ -46,6 +46,7 @@ class tapeimgrGUI(tk.Frame):
         self.prefix = config.prefix
         self.extension = config.extension
         self.fillBlocks = config.fillBlocks
+        self.myTape = Tape()
         self.build_gui()
 
     def on_quit(self):
@@ -111,12 +112,9 @@ class tapeimgrGUI(tk.Frame):
             print(self.dirOut, self.tapeDevice, str(self.initBlockSize), self.sessions, self.prefix, self.extension, str(self.fillBlocks))
             ## TEST
 
-            # Create Tape class instance
-            myTape = Tape()
-
             # Launch tape processing function as subprocess
             t1 = threading.Thread(target=Tape.processTape,
-                                  args=[myTape,
+                                  args=[self.myTape,
                                         self.dirOut,
                                         self.tapeDevice,
                                         self.initBlockSize,
@@ -314,7 +312,7 @@ def checkDirExists(dirIn):
 
 
 def errorExit(error):
-    """Show error message in messagebox and then exit after userv presses OK"""
+    """Show error message in messagebox and then exit after user presses OK"""
     tkMessageBox.showerror("Error", error)
     sys.exit()
 
@@ -337,7 +335,7 @@ def main():
     """Main function"""
 
     root = tk.Tk()
-    tapeimgrGUI(root)
+    myGUI = tapeimgrGUI(root)
 
     while True:
         try:
@@ -345,14 +343,23 @@ def main():
             root.update()
             time.sleep(0.1)
         except KeyboardInterrupt:
-            msg = 'Completed processing this tape, click OK to continue or Cancel to quit'
-            continueFlag = tkMessageBox.askokcancel("Tape finished", msg)
-            if continueFlag:
-                # Restart the program
-                python = sys.executable
-                os.execl(python, python, * sys.argv)
+            if myGUI.myTape.tapeDeviceIOError:
+                # Tape device not accessible
+                msg = 'Cannot access tape device ' + myGUI.myTape.tapeDevice + \
+                      '. Check that device exits, and that tapeimgr is run as root'
+                errorExit(msg)
+            elif myGUI.myTape.successFlag:
+                # Tape extraction completed with no errors
+                msg = 'Tape processed successfully without errors'
+                tkMessageBox.showinfo("Success", msg)
             else:
-                break
+                # Tape extraction resulted in errors
+                msg = 'One or more errors occurred while processing tape, check log file for details'
+                tkMessageBox.showwarning("Errors occurred", msg)
 
+            # Restart the program
+            python = sys.executable
+            os.execl(python, python, * sys.argv)
+  
 if __name__ == "__main__":
     main()

@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 """Shared functions module"""
 
+import os
 import logging
 import glob
 import hashlib
