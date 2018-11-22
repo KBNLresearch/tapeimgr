@@ -15,6 +15,7 @@ import threading
 import _thread as thread
 import logging
 import queue
+import glob
 import tkinter as tk
 from tkinter import filedialog as tkFileDialog
 from tkinter import scrolledtext as ScrolledText
@@ -66,6 +67,13 @@ class tapeimgrGUI(tk.Frame):
         self.fillBlocks = self.fBlocks.get()
         self.logFile = os.path.join(self.dirOut, self.logFileName)
 
+        # Ask confirmation if output files exist already
+        outDirConfirmFlag = True
+        if glob.glob(self.dirOut + '/' + self.prefix + '*.' + self.extension):
+            msg = ('writing to ' + self.dirOut + ' will overwrite existing files!\n'
+                   'press OK to continue, otherwise press Cancel ')
+            outDirConfirmFlag = tkMessageBox.askokcancel("Overwrite files?", msg)
+
         # Check if block size is valid (i.e. a multiple of 512)
         blocksizeValid = False
         try:
@@ -97,7 +105,7 @@ class tapeimgrGUI(tk.Frame):
                 tkMessageBox.showerror("ERROR", msg)
                 sessionsValid = False
 
-        if blocksizeValid and sessionsValid:
+        if outDirConfirmFlag and blocksizeValid and sessionsValid:
 
             # Start logger
             successLogger = True
