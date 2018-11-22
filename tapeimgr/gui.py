@@ -12,6 +12,7 @@ import os
 import imp
 import time
 import threading
+import _thread as thread
 import logging
 import queue
 import tkinter as tk
@@ -98,28 +99,35 @@ class tapeimgrGUI(tk.Frame):
 
         if blocksizeValid and sessionsValid:
 
-            # Disable start and exit buttons
-            self.start_button.config(state='disabled')
-            self.quit_button.config(state='disabled')
-
             # Start logger
-            self.setupLogger()
+            successLogger = True
+            try:
+                self.setupLogger()
+                # Start polling log messages from the queue
+                self.after(100, self.poll_log_queue)
+            except OSError:
+                # Something went wrong while trying to write to lof file
+                msg = ('error trying to write log file to ' + self.logFile)
+                tkMessageBox.showerror("ERROR", msg)
+                successLogger = False
+            
+            if successLogger:
+                # Disable start and exit buttons
+                self.start_button.config(state='disabled')
+                self.quit_button.config(state='disabled')
 
-            # Start polling log messages from the queue
-            self.after(100, self.poll_log_queue)
+                # Launch tape processing function as subprocess
+                t1 = threading.Thread(target=Tape.processTape,
+                                    args=[self.myTape,
+                                            self.dirOut,
+                                            self.tapeDevice,
+                                            self.initBlockSize,
+                                            self.sessions,
+                                            self.prefix,
+                                            self.extension,
+                                            self.fillBlocks])
 
-            # Launch tape processing function as subprocess
-            t1 = threading.Thread(target=Tape.processTape,
-                                  args=[self.myTape,
-                                        self.dirOut,
-                                        self.tapeDevice,
-                                        self.initBlockSize,
-                                        self.sessions,
-                                        self.prefix,
-                                        self.extension,
-                                        self.fillBlocks])
-
-            t1.start()
+                t1.start()
 
 
     def selectOutputDirectory(self):
@@ -246,13 +254,9 @@ class tapeimgrGUI(tk.Frame):
         """Set up logger configuration"""
 
         # Basic configuration
-        try:
-            logging.basicConfig(filename=self.logFile,
-                                level=logging.INFO,
-                                format='%(asctime)s - %(levelname)s - %(message)s')
-        except OSError:
-            msg = ('error trying to write log file')
-            errorExit(msg)
+        logging.basicConfig(filename=self.logFile,
+                            level=logging.INFO,
+                            format='%(asctime)s - %(levelname)s - %(message)s')
 
         # Add the handler to logger
         self.logger = logging.getLogger()
@@ -313,7 +317,7 @@ def checkDirExists(dirIn):
 def errorExit(error):
     """Show error message in messagebox and then exit after user presses OK"""
     tkMessageBox.showerror("Error", error)
-    sys.exit(1)
+    os._exit(1)
 
 
 def main_is_frozen():
