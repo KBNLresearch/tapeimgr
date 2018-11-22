@@ -109,7 +109,7 @@ class tapeimgrGUI(tk.Frame):
             self.after(100, self.poll_log_queue)
 
             ## TEST
-            print(self.dirOut, self.tapeDevice, str(self.initBlockSize), self.sessions, self.prefix, self.extension, str(self.fillBlocks))
+            # print(self.dirOut, self.tapeDevice, str(self.initBlockSize), self.sessions, self.prefix, self.extension, str(self.fillBlocks))
             ## TEST
 
             # Launch tape processing function as subprocess
@@ -130,7 +130,6 @@ class tapeimgrGUI(tk.Frame):
         """Select output directory"""
         dirInit = self.dirOut
         self.dirOut = tkFileDialog.askdirectory(initialdir=dirInit)
-        print(self.dirOut)
         self.outDirLabel['text'] = self.dirOut
 
     def decreaseBlocksize(self):

@@ -238,5 +238,4 @@ class Tape:
                 blockSizeFound = True
             else:
                 # Try again with larger block size
-                print(type(self.blockSize))
                 self.blockSize += 512
