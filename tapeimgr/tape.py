@@ -54,7 +54,7 @@ class Tape:
         # Check if glob pattern for dirOut, prefix and extension matches existing files
         if glob.glob(self.dirOut + '/' + self.prefix + '*.' + self.extension):
             self.outputExistsFlag = True
-    
+
         # Check if dirOut is writable
         self.dirOutIsWritable = os.access(self.dirOut, os.W_OK | os.X_OK)
 

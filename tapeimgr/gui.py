@@ -54,10 +54,10 @@ class tapeimgrGUI(tk.Frame):
 
     def on_submit(self):
         """fetch and validate entered input, and start processing"""
-     
+
         # This flag is true if all input validates
         inputValidateFlag = True
-    
+
         # Fetch entered values (strip any leading / trailing whitespace characters)
         self.tapeDevice = self.tapeDevice_entry.get().strip()
         self.initBlockSize = self.initBlockSize_entry.get().strip()
@@ -66,7 +66,7 @@ class tapeimgrGUI(tk.Frame):
         self.extension = self.extension_entry.get().strip()
         self.fillBlocks = self.fBlocks.get()
         self.logFile = os.path.join(self.dirOut, self.logFileName)
-    
+
         # Create tape instance
         self.tape = Tape(self.dirOut,
                          self.tapeDevice,
@@ -88,7 +88,7 @@ class tapeimgrGUI(tk.Frame):
             inputValidateFlag = False
             msg = ('Cannot write to directory ' + self.dirOut)
             tkMessageBox.showerror("ERROR", msg)
-    
+
         if not self.tape.blockSizeIsValid:
             inputValidateFlag = False
             msg = ('Block size not valid')
@@ -120,7 +120,7 @@ class tapeimgrGUI(tk.Frame):
                 msg = ('error trying to write log file to ' + self.logFile)
                 tkMessageBox.showerror("ERROR", msg)
                 successLogger = False
-            
+
             if successLogger:
                 # Disable start and exit buttons
                 self.start_button.config(state='disabled')
@@ -373,6 +373,6 @@ def main():
             # Restart the program
             python = sys.executable
             os.execl(python, python, * sys.argv)
-  
+
 if __name__ == "__main__":
     main()
