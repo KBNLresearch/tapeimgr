@@ -47,7 +47,7 @@ class tapeimgrCLI:
         self.prefix = config.prefix
         self.extension = config.extension
         self.fillBlocks = bool(config.fillBlocks)
-        self.myTape = Tape()
+        self.tape = Tape()
 
 
     def parseCommandLine(self):
@@ -127,13 +127,14 @@ def checkFileExists(self, fileIn):
 def main():
     """Main command line application"""
 
-    myCLI = tapeimgrCLI()
-
     # Set encoding of the terminal to UTF-8
     out = codecs.getwriter("UTF-8")(sys.stdout.buffer)
     err = codecs.getwriter("UTF-8")(sys.stderr.buffer)
 
-    # Get input from command line
+    # Create tapeImgrCLI instance
+    myCLI = tapeimgrCLI()
+
+    # Parse command line arguments
     myCLI.parseCommandLine()
 
     print(myCLI.tapeDevice)

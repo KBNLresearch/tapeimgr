@@ -48,7 +48,7 @@ class tapeimgrGUI(tk.Frame):
         self.prefix = config.prefix
         self.extension = config.extension
         self.fillBlocks = bool(config.fillBlocks)
-        self.myTape = Tape()
+        self.tape = Tape()
         self.build_gui()
 
     def on_quit(self):
@@ -132,7 +132,7 @@ class tapeimgrGUI(tk.Frame):
 
                 # Launch tape processing function as subprocess
                 t1 = threading.Thread(target=Tape.processTape,
-                                    args=[self.myTape,
+                                    args=[self.tape,
                                             self.dirOut,
                                             self.tapeDevice,
                                             self.initBlockSize,
@@ -360,12 +360,12 @@ def main():
             root.update()
             time.sleep(0.1)
         except KeyboardInterrupt:
-            if myGUI.myTape.tapeDeviceIOError:
+            if myGUI.tape.tapeDeviceIOError:
                 # Tape device not accessible
-                msg = ('Cannot access tape device ' + myGUI.myTape.tapeDevice +
+                msg = ('Cannot access tape device ' + myGUI.tape.tapeDevice +
                        '. Check that device exits, and that tapeimgr is run as root')
                 errorExit(msg)
-            elif myGUI.myTape.successFlag:
+            elif myGUI.tape.successFlag:
                 # Tape extraction completed with no errors
                 msg = ('Tape processed successfully without errors')
                 tkMessageBox.showinfo("Success", msg)
