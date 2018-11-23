@@ -7,21 +7,36 @@ import os
 import sys
 import time
 import logging
+import glob
 import _thread as thread
 from . import shared
 
 class Tape:
     """Tape class"""
-    def __init__(self):
+    def __init__(self,
+                 dirOut,
+                 tapeDevice,
+                 initBlockSize,
+                 sessions,
+                 prefix,
+                 extension,
+                 fillBlocks):
         """initialise Tape class instance"""
+
         # Input collected by GUI / CLI
-        self.dirOut = ''
-        self.tapeDevice = ''
-        self.initBlockSize = 0
-        self.sessions = ''
-        self.prefix = ''
-        self.extension = ''
-        self.fillBlocks = False
+        self.dirOut = dirOut
+        self.tapeDevice = tapeDevice
+        self.initBlockSize = initBlockSize
+        self.sessions = sessions
+        self.prefix = prefix
+        self.extension = extension
+        self.fillBlocks = fillBlocks
+        # Input validation flags
+        self.dirOutIsDirectory = False
+        self.outputExistsFlag = False
+        self.dirOutIsWritable = False
+        self.blockSizeIsValid = False
+        self.sessionsIsValid = False
         # Miscellaneous attributes
         self.tapeDeviceIOError = False
         self.successFlag = True
@@ -30,23 +45,48 @@ class Tape:
         self.sessionsList = []
         self.blockSize = 0
 
-    def processTape(self,
-                    dirOut,
-                    tapeDevice,
-                    initBlockSize,
-                    sessions,
-                    prefix,
-                    extension,
-                    fillBlocks):
-        """Process a tape"""
+    def validateInput(self):
+        """Validate and pre-process input"""
 
-        self.dirOut = os.path.normpath(dirOut)
-        self.tapeDevice = tapeDevice
-        self.initBlockSize = int(initBlockSize)
-        self.sessions = sessions
-        self.prefix = prefix
-        self.extension = extension
-        self.fillBlocks = fillBlocks
+        # Check if dirOut is a directory
+        self.dirOutIsDirectory = os.path.isdir(self.dirOut)
+
+        # Check if glob pattern for dirOut, prefix and extension matches existing files
+        if glob.glob(self.dirOut + '/' + self.prefix + '*.' + self.extension):
+            self.outputExistsFlag = True
+    
+        # Check if dirOut is writable
+        self.dirOutIsWritable = os.access(self.dirOut, os.W_OK | os.X_OK)
+
+        # Check if initial block size is valid (i.e. a multiple of 512)
+        try:
+            noBlocks = (self.initBlockSize/512)
+
+            if not noBlocks.is_integer():
+                self.blockSizeIsValid = False
+            elif noBlocks == 0:
+                self.blockSizeIsValid = False
+            else:
+                self.blockSizeIsValid = True
+        except ValueError:
+            self.blockSizeIsValid = False
+
+        # Check if sessions entry is valid; also split sessions string
+        # to list of integers
+        if self.sessions.strip() == '':
+            # Empty string (default): OK
+            self.sessionsIsValid = True
+        else:
+            try:
+                # Each item in list is an integer: OK
+                self.sessionsList = [int(i) for i in self.sessions.split(',')]
+                self.sessionsIsValid = True
+            except ValueError:
+                # One or more items are not an integer
+                self.sessionsIsValid = False
+
+    def processTape(self):
+        """Process a tape"""
 
         # Write some general info to log file
         logging.info('*** Tape extraction log ***')
@@ -86,13 +126,6 @@ class Tape:
             # This triggers a KeyboardInterrupt in the main thread
             thread.interrupt_main()
             sys.exit()
-
-        # Split sessions string to list
-        try:
-            self.sessionsList = [int(i) for i in self.sessions.split(',')]
-        except ValueError:
-            # sessions is empty string or invalid input
-            self.sessionsList = []
 
         # Iterate over all sessions on tape until end is detected
         while not self.endOfTape:

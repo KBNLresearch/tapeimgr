@@ -48,7 +48,6 @@ class tapeimgrGUI(tk.Frame):
         self.prefix = config.prefix
         self.extension = config.extension
         self.fillBlocks = bool(config.fillBlocks)
-        self.tape = Tape()
         self.build_gui()
 
     def on_quit(self):
@@ -56,62 +55,61 @@ class tapeimgrGUI(tk.Frame):
         os._exit(0)
 
     def on_submit(self):
-        """fetch and validate entered input"""
-
-        # Fetch entered values (strip any leading / traling whitespace characters)
+        """fetch and validate entered input, and start processing"""
+     
+        # This flag is true if all input validates
+        inputValidateFlag = True
+    
+        # Fetch entered values (strip any leading / trailing whitespace characters)
         self.tapeDevice = self.tapeDevice_entry.get().strip()
-        self.initBlockSize = self.initBlockSize_entry.get().strip()
+        self.initBlockSize = int(self.initBlockSize_entry.get().strip())
         self.sessions = self.sessions_entry.get().strip()
         self.prefix = self.prefix_entry.get().strip()
         self.extension = self.extension_entry.get().strip()
-        self.fillBlocks = self.fBlocks.get()
+        self.fillBlocks = bool(self.fBlocks.get())
         self.logFile = os.path.join(self.dirOut, self.logFileName)
+    
+        # Create tape instance
+        self.tape = Tape(self.dirOut,
+                         self.tapeDevice,
+                         self.initBlockSize,
+                         self.sessions,
+                         self.prefix,
+                         self.extension,
+                         self.fillBlocks)
+        # Validate input
+        self.tape.validateInput()
+
+        # Show error message for any parameters that didn  pass validation
+        if not self.tape.dirOutIsDirectory:
+            inputValidateFlag = False
+            msg = ("Output directory doesn't exist:\n" + self.dirOut)
+            tkMessageBox.showerror("ERROR", msg)
+
+        if not self.tape.dirOutIsWritable:
+            inputValidateFlag = False
+            msg = ('Cannot write to directory ' + self.dirOut)
+            tkMessageBox.showerror("ERROR", msg)
+    
+        if not self.tape.blockSizeIsValid:
+            inputValidateFlag = False
+            msg = ('Block size not valid')
+            tkMessageBox.showerror("ERROR", msg)
+
+        if not self.tape.sessionsIsValid:
+            inputValidateFlag = False
+            msg = ('Sessions value not valid\n'
+                   '(must be comma-delimited string of integer numbers, or empty)')
+            tkMessageBox.showerror("ERROR", msg)
 
         # Ask confirmation if output files exist already
         outDirConfirmFlag = True
-        if glob.glob(self.dirOut + '/' + self.prefix + '*.' + self.extension):
+        if self.tape.outputExistsFlag:
             msg = ('writing to ' + self.dirOut + ' will overwrite existing files!\n'
                    'press OK to continue, otherwise press Cancel ')
             outDirConfirmFlag = tkMessageBox.askokcancel("Overwrite files?", msg)
 
-        # Check if dirOut is writable
-        dirOutIsWritable = os.access(self.dirOut, os.W_OK | os.X_OK)
-        if not dirOutIsWritable:
-            msg = ('Cannot write to directory ' + self.dirOut)
-            tkMessageBox.showerror("ERROR", msg)
-    
-        # Check if block size is valid (i.e. a multiple of 512)
-        blocksizeValid = False
-        try:
-            noBlocks = (int(self.initBlockSize)/512)
-
-            if not noBlocks.is_integer():
-                msg = ('Initial block size must be a multiple of 512')
-                tkMessageBox.showerror("ERROR", msg)
-            elif noBlocks == 0:
-                msg = ('Initial block size cannot be 0')
-                tkMessageBox.showerror("ERROR", msg)
-            else:
-                blocksizeValid = True
-
-        except ValueError:
-            msg = ('Initial block size must be a number')
-            tkMessageBox.showerror("ERROR", msg)
-
-        # Check if sessions entry is valid
-        if self.sessions.strip() == '':
-            sessionsValid = True
-        else:
-            try:
-                [int(i) for i in self.sessions.split(',')]
-                sessionsValid = True
-            except ValueError:
-                # invalid input
-                msg = ('Sessions value cannot be ' + self.sessions)
-                tkMessageBox.showerror("ERROR", msg)
-                sessionsValid = False
-
-        if (dirOutIsWritable and outDirConfirmFlag and blocksizeValid and sessionsValid):
+        if (inputValidateFlag and outDirConfirmFlag):
 
             # Start logger
             successLogger = True
@@ -131,16 +129,7 @@ class tapeimgrGUI(tk.Frame):
                 self.quit_button.config(state='disabled')
 
                 # Launch tape processing function as subprocess
-                t1 = threading.Thread(target=Tape.processTape,
-                                    args=[self.tape,
-                                            self.dirOut,
-                                            self.tapeDevice,
-                                            self.initBlockSize,
-                                            self.sessions,
-                                            self.prefix,
-                                            self.extension,
-                                            self.fillBlocks])
-
+                t1 = threading.Thread(target=self.tape.processTape)
                 t1.start()
 
 

@@ -48,6 +48,7 @@ class tapeimgrCLI:
         self.extension = config.extension
         self.fillBlocks = bool(config.fillBlocks)
         self.tape = Tape()
+        self.parseCommandLine()
 
 
     def parseCommandLine(self):
@@ -133,9 +134,6 @@ def main():
 
     # Create tapeImgrCLI instance
     myCLI = tapeimgrCLI()
-
-    # Parse command line arguments
-    myCLI.parseCommandLine()
 
     print(myCLI.tapeDevice)
     print(myCLI.dirOut)
