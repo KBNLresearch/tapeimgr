@@ -18,7 +18,7 @@ import queue
 import glob
 import codecs
 import argparse
-from .tapeimgr import Tape
+from .tape import Tape
 from . import config
 
 

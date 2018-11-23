@@ -21,7 +21,7 @@ from tkinter import filedialog as tkFileDialog
 from tkinter import scrolledtext as ScrolledText
 from tkinter import messagebox as tkMessageBox
 from tkinter import ttk
-from .tapeimgr import Tape
+from .tape import Tape
 from . import config
 
 
