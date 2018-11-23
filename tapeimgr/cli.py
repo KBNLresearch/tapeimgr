@@ -20,6 +20,10 @@ __version__ = '0.1.0'
 
 class tapeimgrCLI:
 
+    """This class defines the command line interface + associated functions
+    for associated actions
+    """
+
     def __init__(self):
         """Initiate class"""
         # Create parser

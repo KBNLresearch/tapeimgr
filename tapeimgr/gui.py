@@ -12,10 +12,8 @@ import os
 import imp
 import time
 import threading
-import _thread as thread
 import logging
 import queue
-import glob
 import tkinter as tk
 from tkinter import filedialog as tkFileDialog
 from tkinter import scrolledtext as ScrolledText
