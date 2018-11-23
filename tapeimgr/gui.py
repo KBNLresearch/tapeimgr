@@ -62,11 +62,11 @@ class tapeimgrGUI(tk.Frame):
     
         # Fetch entered values (strip any leading / trailing whitespace characters)
         self.tapeDevice = self.tapeDevice_entry.get().strip()
-        self.initBlockSize = int(self.initBlockSize_entry.get().strip())
+        self.initBlockSize = self.initBlockSize_entry.get().strip()
         self.sessions = self.sessions_entry.get().strip()
         self.prefix = self.prefix_entry.get().strip()
         self.extension = self.extension_entry.get().strip()
-        self.fillBlocks = bool(self.fBlocks.get())
+        self.fillBlocks = self.fBlocks.get()
         self.logFile = os.path.join(self.dirOut, self.logFileName)
     
         # Create tape instance
@@ -141,14 +141,22 @@ class tapeimgrGUI(tk.Frame):
 
     def decreaseBlocksize(self):
         """Decrease value of initBlockSize"""
-        blockSizeOld = int(self.initBlockSize_entry.get().strip())
+        try:
+            blockSizeOld = int(self.initBlockSize_entry.get().strip())
+        except ValueError:
+            # Reset if user manually entered something weird
+            blockSizeOld = int(config.initBlockSize)
         blockSizeNew = max(blockSizeOld - 512, 512)
         self.initBlockSize_entry.delete(0, tk.END)
         self.initBlockSize_entry.insert(tk.END, str(blockSizeNew))
 
     def increaseBlocksize(self):
         """Increase value of initBlockSize"""
-        blockSizeOld = int(self.initBlockSize_entry.get().strip())
+        try:
+            blockSizeOld = int(self.initBlockSize_entry.get().strip())
+        except ValueError:
+            # Reset if user manually entered something weird
+            blockSizeOld = int(config.initBlockSize)
         blockSizeNew = blockSizeOld + 512
         self.initBlockSize_entry.delete(0, tk.END)
         self.initBlockSize_entry.insert(tk.END, str(blockSizeNew))

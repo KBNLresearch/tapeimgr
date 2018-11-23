@@ -60,6 +60,8 @@ class Tape:
 
         # Check if initial block size is valid (i.e. a multiple of 512)
         try:
+            self.initBlockSize = int(self.initBlockSize)
+
             noBlocks = (self.initBlockSize/512)
 
             if not noBlocks.is_integer():
@@ -84,6 +86,9 @@ class Tape:
             except ValueError:
                 # One or more items are not an integer
                 self.sessionsIsValid = False
+
+        # Convert fillBlocks to Boolean
+        self.fillBlocks = bool(self.fillBlocks)
 
     def processTape(self):
         """Process a tape"""
