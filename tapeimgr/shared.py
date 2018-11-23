@@ -8,7 +8,7 @@ import hashlib
 import subprocess as sub
 
 
-def launchSubProcess(args):
+def launchSubProcess(args, writeLog=True):
     """Launch subprocess and return exit code, stdout and stderr"""
     try:
         # Execute command line; stdout + stderr redirected to objects
@@ -33,17 +33,18 @@ def launchSubProcess(args):
         errorsAsString = ""
 
     # Logging
-    cmdName = args[0]
-    logging.info('Command: ' + ' '.join(args))
+    if writeLog:
+        cmdName = args[0]
+        logging.info('Command: ' + ' '.join(args))
 
-    if exitStatus == 0:
-        logging.info(cmdName + ' status: ' + str(exitStatus))
-        logging.info(cmdName + ' stdout:\n' + outputAsString)
-        logging.info(cmdName + ' stderr:\n' + errorsAsString)
-    else:
-        logging.error(cmdName + ' status: ' + str(exitStatus))
-        logging.error(cmdName + ' stdout:\n' + outputAsString)
-        logging.error(cmdName + ' stderr:\n' + errorsAsString)
+        if exitStatus == 0:
+            logging.info(cmdName + ' status: ' + str(exitStatus))
+            logging.info(cmdName + ' stdout:\n' + outputAsString)
+            logging.info(cmdName + ' stderr:\n' + errorsAsString)
+        else:
+            logging.error(cmdName + ' status: ' + str(exitStatus))
+            logging.error(cmdName + ' stdout:\n' + outputAsString)
+            logging.error(cmdName + ' stderr:\n' + errorsAsString)
 
     return(exitStatus, outputAsString, errorsAsString)
 

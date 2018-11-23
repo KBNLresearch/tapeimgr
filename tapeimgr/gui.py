@@ -89,6 +89,11 @@ class tapeimgrGUI(tk.Frame):
             msg = ('Cannot write to directory ' + self.dirOut)
             tkMessageBox.showerror("ERROR", msg)
 
+        if not self.tape.deviceAccessibleFlag:
+            inputValidateFlag = False
+            msg = ('Tape device is not accessible')
+            tkMessageBox.showerror("ERROR", msg)
+    
         if not self.tape.blockSizeIsValid:
             inputValidateFlag = False
             msg = ('Block size not valid')

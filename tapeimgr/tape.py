@@ -34,6 +34,7 @@ class Tape:
         # Input validation flags
         self.dirOutIsDirectory = False
         self.outputExistsFlag = False
+        self.deviceAccessibleFlag = False
         self.dirOutIsWritable = False
         self.blockSizeIsValid = False
         self.sessionsIsValid = False
@@ -57,6 +58,16 @@ class Tape:
 
         # Check if dirOut is writable
         self.dirOutIsWritable = os.access(self.dirOut, os.W_OK | os.X_OK)
+
+        # Check if tape device is accessible
+        args = ['mt']
+        args.append('-f')
+        args.append(self.tapeDevice)
+        args.append('status')
+        mtStatus, mtOut, mtErr = shared.launchSubProcess(args, False)
+
+        if mtStatus == 0:
+            self.deviceAccessibleFlag = True
 
         # Check if initial block size is valid (i.e. a multiple of 512)
         try:
