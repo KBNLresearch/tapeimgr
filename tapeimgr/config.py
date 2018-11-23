@@ -8,5 +8,5 @@ tapeDevice = '/dev/nst0'
 initBlockSize = '512'
 prefix = 'session'
 extension = 'dd'
-fillBlocks = 0
+fillBlocks = False
 finishedTape = False

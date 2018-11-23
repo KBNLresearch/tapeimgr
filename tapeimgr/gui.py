@@ -47,7 +47,7 @@ class tapeimgrGUI(tk.Frame):
         self.logFile = ''
         self.prefix = config.prefix
         self.extension = config.extension
-        self.fillBlocks = config.fillBlocks
+        self.fillBlocks = bool(config.fillBlocks)
         self.myTape = Tape()
         self.build_gui()
 

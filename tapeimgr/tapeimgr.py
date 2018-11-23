@@ -21,7 +21,7 @@ class Tape:
         self.sessions = ''
         self.prefix = ''
         self.extension = ''
-        self.fillBlocks = ''
+        self.fillBlocks = False
         # Miscellaneous attributes
         self.tapeDeviceIOError = False
         self.successFlag = True
@@ -59,7 +59,7 @@ class Tape:
         logging.info('extension: ' + self.extension)
         logging.info('fill blocks: ' + str(self.fillBlocks))
 
-        if self.fillBlocks == 1:
+        if self.fillBlocks:
             # dd's conv=sync flag results in padding bytes for each block if block
             # size is too large, so override user-defined value with default
             # if -f flag was used
@@ -166,7 +166,7 @@ class Tape:
             args.append('of='+ ofName)
             args.append('bs=' + str(self.blockSize))
 
-            if self.fillBlocks == 1:
+            if self.fillBlocks:
                 # Add conv=noerror,sync options to argument list
                 args.append('conv=noerror,sync')
 
