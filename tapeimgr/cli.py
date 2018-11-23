@@ -47,8 +47,6 @@ class tapeimgrCLI:
         self.prefix = config.prefix
         self.extension = config.extension
         self.fillBlocks = bool(config.fillBlocks)
-        self.tape = Tape()
-        self.parseCommandLine()
 
 
     def parseCommandLine(self):
@@ -107,36 +105,117 @@ class tapeimgrCLI:
         self.prefix = args.pref
         self.extension = args.ext
 
+    def process(self):
+        """fetch and validate entered input, and start processing"""
 
-def printWarning(self, msg):
-    """Print warning to stderr"""
-    msgString = ("User warning: " + msg + "\n")
+        # Parse command line arguments
+        self.parseCommandLine()
+
+        # Create tape instance
+        self.tape = Tape(self.dirOut,
+                         self.tapeDevice,
+                         self.initBlockSize,
+                         self.sessions,
+                         self.prefix,
+                         self.extension,
+                         self.fillBlocks)
+
+        # Validate input
+        self.tape.validateInput()
+
+        # Show error message and exit if any parameters didn't pass validation
+        if not self.tape.dirOutIsDirectory:
+            msg = ("Output directory '" + self.dirOut + "' doesn't exist!")
+            errorExit(msg)
+
+        if not self.tape.dirOutIsWritable:
+            msg = ("Cannot write to directory '" + self.dirOut + "'!")
+            errorExit(msg)
+
+        if not self.tape.blockSizeIsValid:
+            msg = ("--blocksize '" + str(self.initBlockSize) + "' not valid!")
+            errorExit(msg)
+
+        if not self.tape.sessionsIsValid:
+            msg = ('--sessions value not valid, must be a comma-delimited\n'
+                   '    string of integer numbers, or empty!')
+            errorExit(msg)
+
+        # Ask confirmation if output files exist already
+        if self.tape.outputExistsFlag:
+            msg = ('WARNING: writing to ' + self.dirOut + ' will overwrite existing files!\n'
+                    'do you really want to proceed? (enter Y to proceed, or N to cancel): ')
+            continueResponse = input(msg)
+
+            if continueResponse.upper() == 'N':
+                msg = ('Operation cancelled')
+                sys.stderr.write(msg)
+                sys.exit(1)
+        
+        # Start logger
+        self.setupLogger()
+
+        # Process the tape
+        self.tape.processTape()
+
+    def setupLogger(self):
+        """Set up logger configuration"""
+
+        # Basic configuration
+        logging.basicConfig(filename=self.logFile,
+                            level=logging.INFO,
+                            format='%(asctime)s - %(levelname)s - %(message)s')
+
+        self.logger = logging.getLogger()
+
+        # Add stream handler that directs logging output to stdout
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        self.logger.addHandler(handler)
+
+
+def printInfo(msg):
+    """Print info to stderr"""
+    msgString = ('INFO: ' + msg + '\n')
     sys.stderr.write(msgString)
 
-def errorExit(self, msg):
+def printWarning(msg):
+    """Print warning to stderr"""
+    msgString = ('WARNING: ' + msg + '\n')
+    sys.stderr.write(msgString)
+
+def errorExit(msg):
     """Print warning to stderr and exit"""
-    msgString = ("Error: " + msg + "\n")
+    msgString = ('ERROR: ' + msg + '\n')
     sys.stderr.write(msgString)
     sys.exit(1)
 
-def checkFileExists(self, fileIn):
-    """Check if file exists and exit if not"""
-    if not os.path.isfile(fileIn):
-        msg = fileIn + " does not exist"
-        self.errorExit(msg)
 
 def main():
     """Main command line application"""
 
-    # Set encoding of the terminal to UTF-8
-    out = codecs.getwriter("UTF-8")(sys.stdout.buffer)
-    err = codecs.getwriter("UTF-8")(sys.stderr.buffer)
-
     # Create tapeImgrCLI instance
     myCLI = tapeimgrCLI()
-
-    print(myCLI.tapeDevice)
-    print(myCLI.dirOut)
+    # Start main processing function
+    try:
+        myCLI.process()
+    except KeyboardInterrupt:
+        if myCLI.tape.tapeDeviceIOError:
+            # Tape device not accessible
+            msg = ('Cannot access tape device ' + myCLI.tape.tapeDevice +
+                '. Check that device exits, and that tapeimgr is run as root')
+            errorExit(msg)
+        elif myCLI.tape.successFlag:
+            # Tape extraction completed with no errors
+            msg = ('Tape processed successfully without errors!')
+            printInfo(msg)
+        else:
+            # Tape extraction resulted in errors
+            msg = ('One or more errors occurred while processing tape, '
+                    'check log file for details')
+            errorExit(msg)
 
 
 if __name__ == "__main__":

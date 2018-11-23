@@ -80,7 +80,7 @@ class tapeimgrGUI(tk.Frame):
         # Validate input
         self.tape.validateInput()
 
-        # Show error message for any parameters that didn  pass validation
+        # Show error message for any parameters that didn't pass validation
         if not self.tape.dirOutIsDirectory:
             inputValidateFlag = False
             msg = ("Output directory doesn't exist:\n" + self.dirOut)
