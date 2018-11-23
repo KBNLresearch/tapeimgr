@@ -9,14 +9,7 @@ Research department,  KB / National Library of the Netherlands
 
 import sys
 import os
-import imp
-import time
-import threading
-import _thread as thread
 import logging
-import queue
-import glob
-import codecs
 import argparse
 from .tape import Tape
 from . import config
@@ -144,14 +137,14 @@ class tapeimgrCLI:
         # Ask confirmation if output files exist already
         if self.tape.outputExistsFlag:
             msg = ('WARNING: writing to ' + self.dirOut + ' will overwrite existing files!\n'
-                    'do you really want to proceed? (enter Y to proceed, or N to cancel): ')
+                   'do you really want to proceed? (enter Y to proceed, or N to cancel): ')
             continueResponse = input(msg)
 
             if continueResponse.upper() == 'N':
                 msg = ('Operation cancelled')
                 sys.stderr.write(msg)
                 sys.exit(1)
-        
+
         # Start logger
         self.setupLogger()
 
@@ -205,7 +198,7 @@ def main():
         if myCLI.tape.tapeDeviceIOError:
             # Tape device not accessible
             msg = ('Cannot access tape device ' + myCLI.tape.tapeDevice +
-                '. Check that device exits, and that tapeimgr is run as root')
+                   '. Check that device exits, and that tapeimgr is run as root')
             errorExit(msg)
         elif myCLI.tape.successFlag:
             # Tape extraction completed with no errors
@@ -214,7 +207,7 @@ def main():
         else:
             # Tape extraction resulted in errors
             msg = ('One or more errors occurred while processing tape, '
-                    'check log file for details')
+                   'check log file for details')
             errorExit(msg)
 
 
