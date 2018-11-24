@@ -351,7 +351,9 @@ def get_main_dir():
 def main():
     """Main function"""
 
+    appDir = get_main_dir()
     root = tk.Tk()
+    root.iconphoto(True, tk.PhotoImage(file=os.path.join(appDir, 'icon.png')))
     myGUI = tapeimgrGUI(root)
 
     while True:
