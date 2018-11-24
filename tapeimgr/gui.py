@@ -136,7 +136,7 @@ class tapeimgrGUI(tk.Frame):
                 t1.start()
 
 
-    def selectOutputDirectory(self):
+    def selectOutputDirectory(self, event=None):
         """Select output directory"""
         dirInit = self.dirOut
         self.dirOut = tkFileDialog.askdirectory(initialdir=dirInit)
@@ -258,6 +258,7 @@ class tapeimgrGUI(tk.Frame):
         self.st.grid(column=0, row=15, sticky='ew', columnspan=4)
 
         # Define bindings for keyboard shortcuts: buttons
+        self.root.bind_all('<Control-Key-d>', self.selectOutputDirectory)
         self.root.bind_all('<Control-Key-s>', self.on_submit)
         self.root.bind_all('<Control-Key-e>', self.on_quit)
 
