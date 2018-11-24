@@ -129,6 +129,10 @@ class tapeimgrCLI:
             msg = ("Cannot write to directory '" + self.dirOut + "'!")
             errorExit(msg)
 
+        if not self.tape.deviceAccessibleFlag:
+            msg = ('Tape device is not accessible!')
+            errorExit(msg)
+
         if not self.tape.blockSizeIsValid:
             msg = ("--blocksize '" + str(self.initBlockSize) + "' not valid!")
             errorExit(msg)
@@ -202,7 +206,7 @@ def main():
         if myCLI.tape.tapeDeviceIOError:
             # Tape device not accessible
             msg = ('Cannot access tape device ' + myCLI.tape.tapeDevice +
-                   '. Check that device exits, and that tapeimgr is run as root')
+                   '. Check that device exists, and that tapeimgr is run as root')
             errorExit(msg)
         elif myCLI.tape.successFlag:
             # Tape extraction completed with no errors
