@@ -31,15 +31,15 @@ class tapeimgrCLI:
         # (see https://stackoverflow.com/a/52606755/1209004 and
         # and https://stackoverflow.com/a/5464440/1209004)
         formatter = lambda prog: argparse.HelpFormatter(prog, max_help_position=50)
-        self.parser = argparse.ArgumentParser(description='Read contents of tape. Each session is'
-                                              ' stored as a separate file.',
+        self.parser = argparse.ArgumentParser(description='Read contents of tape. Each file'
+                                              ' on the tape is stored as a separate file.',
                                               formatter_class=formatter)
         self.finishedTape = False
         self.dirOut = os.path.expanduser("~")
         self.logFileName = config.logFileName
         self.tapeDevice = config.tapeDevice
         self.initBlockSize = config.initBlockSize
-        self.sessions = ''
+        self.files = ''
         self.logFile = ''
         self.prefix = config.prefix
         self.extension = config.extension
@@ -73,12 +73,12 @@ class tapeimgrCLI:
                                  help='initial block size (must be a multiple of 512)',
                                  dest='size',
                                  default=self.initBlockSize)
-        self.parser.add_argument('--sessions', '-s',
+        self.parser.add_argument('--files', '-s',
                                  action='store',
                                  type=str,
-                                 help='comma-separated list of sessions to extract',
-                                 dest='sessions',
-                                 default=self.sessions)
+                                 help='comma-separated list of files to extract',
+                                 dest='files',
+                                 default=self.files)
         self.parser.add_argument('--prefix', '-p',
                                  action='store',
                                  type=str,
@@ -98,7 +98,7 @@ class tapeimgrCLI:
         self.fillBlocks = args.fillBlocks
         self.tapeDevice = args.device
         self.initBlockSize = args.size
-        self.sessions = args.sessions
+        self.files = args.files
         self.prefix = args.pref
         self.extension = args.ext
 
@@ -112,7 +112,7 @@ class tapeimgrCLI:
         self.tape = Tape(self.dirOut,
                          self.tapeDevice,
                          self.initBlockSize,
-                         self.sessions,
+                         self.files,
                          self.prefix,
                          self.extension,
                          self.fillBlocks)
@@ -137,8 +137,8 @@ class tapeimgrCLI:
             msg = ("--blocksize '" + str(self.initBlockSize) + "' not valid!")
             errorExit(msg)
 
-        if not self.tape.sessionsIsValid:
-            msg = ('--sessions value not valid, must be a comma-delimited\n'
+        if not self.tape.filesIsValid:
+            msg = ('--files value not valid, must be a comma-delimited\n'
                    '    string of integer numbers, or empty!')
             errorExit(msg)
 

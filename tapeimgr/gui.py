@@ -41,7 +41,7 @@ class tapeimgrGUI(tk.Frame):
         self.logFileName = config.logFileName
         self.tapeDevice = config.tapeDevice
         self.initBlockSize = config.initBlockSize
-        self.sessions = ''
+        self.files = ''
         self.logFile = ''
         self.prefix = config.prefix
         self.extension = config.extension
@@ -61,7 +61,7 @@ class tapeimgrGUI(tk.Frame):
         # Fetch entered values (strip any leading / trailing whitespace characters)
         self.tapeDevice = self.tapeDevice_entry.get().strip()
         self.initBlockSize = self.initBlockSize_entry.get().strip()
-        self.sessions = self.sessions_entry.get().strip()
+        self.files = self.files_entry.get().strip()
         self.prefix = self.prefix_entry.get().strip()
         self.extension = self.extension_entry.get().strip()
         self.fillBlocks = self.fBlocks.get()
@@ -71,7 +71,7 @@ class tapeimgrGUI(tk.Frame):
         self.tape = Tape(self.dirOut,
                          self.tapeDevice,
                          self.initBlockSize,
-                         self.sessions,
+                         self.files,
                          self.prefix,
                          self.extension,
                          self.fillBlocks)
@@ -99,9 +99,9 @@ class tapeimgrGUI(tk.Frame):
             msg = ('Block size not valid')
             tkMessageBox.showerror("ERROR", msg)
 
-        if not self.tape.sessionsIsValid:
+        if not self.tape.filesIsValid:
             inputValidateFlag = False
-            msg = ('Sessions value not valid\n'
+            msg = ('Files value not valid\n'
                    '(must be comma-delimited string of integer numbers, or empty)')
             tkMessageBox.showerror("ERROR", msg)
 
@@ -207,11 +207,11 @@ class tapeimgrGUI(tk.Frame):
         self.increaseBSButton = tk.Button(self, text='+', command=self.increaseBlocksize, width=1)
         self.increaseBSButton.grid(column=3, row=7, sticky='w')
 
-        # Sessions
-        tk.Label(self, text='Sessions (comma-separated list)').grid(column=0, row=8, sticky='w')
-        self.sessions_entry = tk.Entry(self, width=20)
-        self.sessions_entry['background'] = 'white'
-        self.sessions_entry.grid(column=1, row=8, sticky='w')
+        # Files
+        tk.Label(self, text='Files (comma-separated list)').grid(column=0, row=8, sticky='w')
+        self.files_entry = tk.Entry(self, width=20)
+        self.files_entry['background'] = 'white'
+        self.files_entry.grid(column=1, row=8, sticky='w')
 
         # Prefix
         tk.Label(self, text='Prefix').grid(column=0, row=9, sticky='w')

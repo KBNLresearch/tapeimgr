@@ -3,7 +3,7 @@
 
 logFileName = 'tapeimgr.log'
 dirOut = ''
-sessions = ''
+files = ''
 tapeDevice = '/dev/nst0'
 initBlockSize = 512
 prefix = 'session'

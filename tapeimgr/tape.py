@@ -17,7 +17,7 @@ class Tape:
                  dirOut,
                  tapeDevice,
                  initBlockSize,
-                 sessions,
+                 files,
                  prefix,
                  extension,
                  fillBlocks):
@@ -27,7 +27,7 @@ class Tape:
         self.dirOut = dirOut
         self.tapeDevice = tapeDevice
         self.initBlockSize = initBlockSize
-        self.sessions = sessions
+        self.files = files
         self.prefix = prefix
         self.extension = extension
         self.fillBlocks = fillBlocks
@@ -37,13 +37,13 @@ class Tape:
         self.deviceAccessibleFlag = False
         self.dirOutIsWritable = False
         self.blockSizeIsValid = False
-        self.sessionsIsValid = False
+        self.filesIsValid = False
         # Miscellaneous attributes
         self.tapeDeviceIOError = False
         self.successFlag = True
         self.endOfTape = False
-        self.session = 1
-        self.sessionsList = []
+        self.file = 1
+        self.filesList = []
         self.blockSize = 0
 
     def validateInput(self):
@@ -84,19 +84,19 @@ class Tape:
         except ValueError:
             self.blockSizeIsValid = False
 
-        # Check if sessions entry is valid; also split sessions string
+        # Check if files entry is valid; also split files string
         # to list of integers
-        if self.sessions.strip() == '':
+        if self.files.strip() == '':
             # Empty string (default): OK
-            self.sessionsIsValid = True
+            self.filesIsValid = True
         else:
             try:
                 # Each item in list is an integer: OK
-                self.sessionsList = [int(i) for i in self.sessions.split(',')]
-                self.sessionsIsValid = True
+                self.filesList = [int(i) for i in self.files.split(',')]
+                self.filesIsValid = True
             except ValueError:
                 # One or more items are not an integer
-                self.sessionsIsValid = False
+                self.filesIsValid = False
 
         # Convert fillBlocks to Boolean
         self.fillBlocks = bool(self.fillBlocks)
@@ -110,7 +110,7 @@ class Tape:
         logging.info('dirOut: ' + self.dirOut)
         logging.info('tapeDevice: ' + self.tapeDevice)
         logging.info('initial blockSize: ' + str(self.initBlockSize))
-        logging.info('sessions: ' + self.sessions)
+        logging.info('files: ' + self.files)
         logging.info('prefix: ' + self.prefix)
         logging.info('extension: ' + self.extension)
         logging.info('fill blocks: ' + str(self.fillBlocks))
@@ -143,20 +143,20 @@ class Tape:
             thread.interrupt_main()
             sys.exit()
 
-        # Iterate over all sessions on tape until end is detected
+        # Iterate over all files on tape until end is detected
         while not self.endOfTape:
-            # Only extract sessions defined by sessions parameter
-            # (if session parameter is empty all sessions are extracted)
-            if self.session in self.sessionsList or self.sessionsList == []:
-                self.extractSession = True
+            # Only extract files defined by files parameter
+            # (if file parameter is empty all files are extracted)
+            if self.file in self.filesList or self.filesList == []:
+                self.extractFile = True
             else:
-                self.extractSession = False
+                self.extractFile = False
 
-            # Call session processing function
-            self.processSession()
+            # Call file processing function
+            self.processFile()
 
-            # Increase session number
-            self.session += 1
+            # Increase file number
+            self.file += 1
 
         # Create checksum file
         logging.info('# Creating checksum file')
@@ -194,21 +194,21 @@ class Tape:
         # This triggers a KeyboardInterrupt in the main thread
         thread.interrupt_main()
 
-    def processSession(self):
-        """Process a session"""
+    def processFile(self):
+        """Process a file"""
 
-        if self.extractSession:
-            # Determine block size for this session
+        if self.extractFile:
+            # Determine block size for this file
             logging.info('# Establishing blockSize')
             self.findBlockSize()
             logging.info('Block size: ' + str(self.blockSize))
 
-            # Name of output file for this session
+            # Name of output file for this file
             paddingChars = max(10 - len(self.prefix), 0)
-            ofName = self.prefix + str(self.session).zfill(paddingChars) + '.' + self.extension
+            ofName = self.prefix + str(self.file).zfill(paddingChars) + '.' + self.extension
             ofName = os.path.join(self.dirOut, ofName)
 
-            logging.info('# Extracting session # ' + str(self.session) + ' to file ' + ofName)
+            logging.info('# Extracting file # ' + str(self.file) + ' to file ' + ofName)
 
             args = ['dd']
             args.append('if=' + self.tapeDevice)
@@ -226,9 +226,9 @@ class Tape:
                 logging.error('# dd encountered an error while reading the tape')
 
         else:
-            # Fast-forward tape to next session
-            logging.info('# Skipping session # ' + str(self.session) +
-                         ', fast-forward to next session')
+            # Fast-forward tape to next file
+            logging.info('# Skipping file # ' + str(self.file) +
+                         ', fast-forward to next file')
 
             args = ['mt']
             args.append('-f')
@@ -247,7 +247,7 @@ class Tape:
         mtStatus, mtOut, mtErr = shared.launchSubProcess(args)
 
         if mtStatus == 0:
-            # Another session exists. Position tape one record backward
+            # Another file exists. Position tape one record backward
             args = ['mt']
             args.append('-f')
             args.append(self.tapeDevice)
@@ -255,7 +255,7 @@ class Tape:
             args.append('1')
             mtStatus, mtOut, mtErr = shared.launchSubProcess(args)
         else:
-            # No further sessions, end of tape reached
+            # No further files, end of tape reached
             logging.info('# Reached end of tape')
             self.endOfTape = True
 
@@ -269,8 +269,8 @@ class Tape:
 
         while not blockSizeFound:
             # Try reading 1 block from tape
-            logging.info('# Guessing block size for session # ' +
-                         str(self.session)  + ', trial value ' +
+            logging.info('# Guessing block size for file # ' +
+                         str(self.file)  + ', trial value ' +
                          str(self.blockSize))
 
             args = ['dd']
@@ -280,7 +280,7 @@ class Tape:
             args.append('count=1')
             ddStatus, ddOut, ddErr = shared.launchSubProcess(args)
 
-            # Position tape 1 record backward (i.e. to the start of this session)
+            # Position tape 1 record backward (i.e. to the start of this file)
             args = ['mt']
             args.append('-f')
             args.append(self.tapeDevice)
