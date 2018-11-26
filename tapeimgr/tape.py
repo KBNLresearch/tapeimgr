@@ -161,7 +161,7 @@ class Tape:
 
         # Create checksum file
         logging.info('# Creating checksum file')
-        checksumStatus = shared.checksumDirectory(self.dirOut, self.extension)
+        shared.checksumDirectory(self.dirOut, self.extension)
 
         # Rewind and eject the tape
         logging.info('# Rewinding tape')
