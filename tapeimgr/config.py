@@ -6,6 +6,6 @@ dirOut = ''
 files = ''
 tapeDevice = '/dev/nst0'
 initBlockSize = 512
-prefix = 'session'
+prefix = 'file'
 extension = 'dd'
 fillBlocks = False
