@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 """Shared configuration constants"""
 
+__version__ = '0.1.0'
 logFileName = 'tapeimgr.log'
 dirOut = ''
 files = ''

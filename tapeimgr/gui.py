@@ -23,7 +23,7 @@ from .tape import Tape
 from . import config
 
 
-__version__ = '0.1.0'
+__version__ = config.__version__
 
 
 class tapeimgrGUI(tk.Frame):

@@ -8,8 +8,9 @@ Research department,  KB / National Library of the Netherlands
 import sys
 from .cli import main as cliLaunch
 from .gui import main as guiLaunch
+from . import config
 
-__version__ = '0.1.0'
+config.__version__ = '0.1.0'
 
 def main():
     """Launch GUI if no command line arguments were given; otherwise launch CLI"""
