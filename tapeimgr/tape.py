@@ -279,7 +279,7 @@ class Tape:
             args.append('of=/dev/null')
             args.append('bs=' + str(self.blockSize))
             args.append('count=1')
-            ddStatus, ddOut, ddErr = shared.launchSubProcess(args)
+            ddStatus, ddOut, ddErr = shared.launchSubProcess(args, False)
 
             # Position tape 1 record backward (i.e. to the start of this file)
             args = ['mt']
@@ -287,7 +287,7 @@ class Tape:
             args.append(self.tapeDevice)
             args.append('bsr')
             args.append('1')
-            mtStatus, mtOut, mtErr = shared.launchSubProcess(args)
+            mtStatus, mtOut, mtErr = shared.launchSubProcess(args, False)
 
             if ddStatus == 0:
                 # Block size found
