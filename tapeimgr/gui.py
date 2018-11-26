@@ -340,7 +340,7 @@ def main():
     root.iconphoto(True, tk.PhotoImage(file=os.path.join(packageDir, 'icons', 'tapeimgr.png')))
     myGUI = tapeimgrGUI(root)
     # This ensures application quits normally if user closes window
-    root.protocol('WM_DELETE_WINDOW', myGUI.on_quit) 
+    root.protocol('WM_DELETE_WINDOW', myGUI.on_quit)
 
     while True:
         try:
