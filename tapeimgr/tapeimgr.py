@@ -10,10 +10,11 @@ from .cli import main as cliLaunch
 from .gui import main as guiLaunch
 from . import config
 
-config.__version__ = '0.1.0'
+__version__ = '0.1.0'
 
 def main():
     """Launch GUI if no command line arguments were given; otherwise launch CLI"""
+    config.version = __version__
     noArgs = len(sys.argv)
     if noArgs == 1:
         guiLaunch()

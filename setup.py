@@ -31,7 +31,7 @@ PYTHON_REQUIRES = '>=3.2'
 
 setup(name='tapeimgr',
       packages=find_packages(),
-      version=find_version('tapeimgr', 'config.py'),
+      version=find_version('tapeimgr', 'tapeimgr.py'),
       license='Apache License 2.0',
       install_requires=INSTALL_REQUIRES,
       python_requires=PYTHON_REQUIRES,
@@ -45,7 +45,7 @@ setup(name='tapeimgr',
       url='https://github.com/KBNLresearch/tapeimgr',
       download_url=('https://github.com/KBNLresearch/tapeimgr/archive/' +
                     find_version('tapeimgr', 'tapeimgr.py') + '.tar.gz'),
-      package_data={'tapeimgr': ['*.*']},
+      package_data={'tapeimgr': ['*.*', 'conf/*.*']},
       zip_safe=False,
       entry_points={'gui_scripts': [
           'tapeimgr = tapeimgr.tapeimgr:main'],

@@ -15,9 +15,6 @@ from .tape import Tape
 from . import config
 
 
-__version__ = config.__version__
-
-
 class tapeimgrCLI:
 
     """This class defines the command line interface + associated functions
@@ -56,7 +53,7 @@ class tapeimgrCLI:
                                  help='output directory')
         self.parser.add_argument('--version', '-v',
                                  action='version',
-                                 version=__version__)
+                                 version=config.version)
         self.parser.add_argument('--fill', '-f',
                                  action='store_true',
                                  dest='fillBlocks',

@@ -23,9 +23,6 @@ from .tape import Tape
 from . import config
 
 
-__version__ = config.__version__
-
-
 class tapeimgrGUI(tk.Frame):
 
     """This class defines the graphical user interface + associated functions
