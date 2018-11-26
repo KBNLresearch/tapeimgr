@@ -106,8 +106,10 @@ class Tape:
         """Process a tape"""
 
         # Write some general info to log file
-        logging.info('*** Tape extraction log ***')
-        logging.info('# User input')
+        logging.info('***************************')
+        logging.info('*** TAPE EXTRACTION LOG ***')
+        logging.info('***************************\n')
+        logging.info('*** USER INPUT ***')
         logging.info('dirOut: ' + self.dirOut)
         logging.info('tapeDevice: ' + self.tapeDevice)
         logging.info('initial blockSize: ' + str(self.initBlockSize))
@@ -124,7 +126,7 @@ class Tape:
             logging.info('Reset initial block size to 512 because -f flag is used')
 
         # Get tape status, output to log file
-        logging.info('# Getting tape status')
+        logging.info('*** Getting tape status ***')
 
         args = ['mt']
         args.append('-f')
@@ -136,8 +138,8 @@ class Tape:
             # Abort if tape device is not accessible
             self.tapeDeviceIOError = True
             self.successFlag = False
-            logging.critical('# Exiting because tape device is not accessible')
-            logging.info('# Success: ' + str(self.successFlag))
+            logging.critical('Exiting because tape device is not accessible')
+            logging.info('Success: ' + str(self.successFlag))
             # Wait 2 seconds to avoid race condition
             time.sleep(2)
             # This triggers a KeyboardInterrupt in the main thread
@@ -160,11 +162,11 @@ class Tape:
             self.file += 1
 
         # Create checksum file
-        logging.info('# Creating checksum file')
+        logging.info('*** Creating checksum file ***')
         shared.checksumDirectory(self.dirOut, self.extension)
 
         # Rewind and eject the tape
-        logging.info('# Rewinding tape')
+        logging.info('*** Rewinding tape ***')
 
         args = ['mt']
         args.append('-f')
@@ -172,7 +174,7 @@ class Tape:
         args.append('rewind')
         mtStatus, mtOut, mtErr = shared.launchSubProcess(args)
 
-        logging.info('# Ejecting tape')
+        logging.info('*** Ejecting tape ***')
 
         args = ['mt']
         args.append('-f')
@@ -180,12 +182,12 @@ class Tape:
         args.append('eject')
         mtStatus, mtOut, mtErr = shared.launchSubProcess(args)
 
-        logging.info('# Success: ' + str(self.successFlag))
+        logging.info('Success: ' + str(self.successFlag))
 
         if self.successFlag:
-            logging.info('# Tape processed successfully without errors')
+            logging.info('Tape processed successfully without errors')
         else:
-            logging.error('# One or more errors occurred while processing tape, \
+            logging.error('One or more errors occurred while processing tape, \
             check log file for details')
 
         # Wait 2 seconds to avoid race condition
@@ -198,7 +200,7 @@ class Tape:
 
         if self.extractFile:
             # Determine block size for this file
-            logging.info('# Establishing blockSize')
+            logging.info('*** Establishing blockSize ***')
             self.findBlockSize()
             logging.info('Block size: ' + str(self.blockSize))
 
@@ -207,7 +209,7 @@ class Tape:
             ofName = self.prefix + str(self.file).zfill(paddingChars) + '.' + self.extension
             ofName = os.path.join(self.dirOut, ofName)
 
-            logging.info('# Extracting file # ' + str(self.file) + ' to file ' + ofName)
+            logging.info('*** Extracting file # ' + str(self.file) + ' to file ' + ofName + ' ***')
 
             args = ['dd']
             args.append('if=' + self.tapeDevice)
@@ -222,12 +224,12 @@ class Tape:
 
             if ddStatus != 0:
                 self.successFlag = False
-                logging.error('# dd encountered an error while reading the tape')
+                logging.error('dd encountered an error while reading the tape')
 
         else:
             # Fast-forward tape to next file
-            logging.info('# Skipping file # ' + str(self.file) +
-                         ', fast-forward to next file')
+            logging.info('*** Skipping file # ' + str(self.file) +
+                         ', fast-forward to next file ***')
 
             args = ['mt']
             args.append('-f')
@@ -255,7 +257,7 @@ class Tape:
             mtStatus, mtOut, mtErr = shared.launchSubProcess(args)
         else:
             # No further files, end of tape reached
-            logging.info('# Reached end of tape')
+            logging.info('*** Reached end of tape ***')
             self.endOfTape = True
 
     def findBlockSize(self):
@@ -268,9 +270,9 @@ class Tape:
 
         while not blockSizeFound:
             # Try reading 1 block from tape
-            logging.info('# Guessing block size for file # ' +
+            logging.info('*** Guessing block size for file # ' +
                          str(self.file)  + ', trial value ' +
-                         str(self.blockSize))
+                         str(self.blockSize) + ' ***')
 
             args = ['dd']
             args.append('if=' + self.tapeDevice)
