@@ -45,6 +45,10 @@ class tapeimgrGUI(tk.Frame):
         self.prefix = config.prefix
         self.extension = config.extension
         self.fillBlocks = bool(config.fillBlocks)
+        self.logger = logging.getLogger()
+        # Create a logging handler using a queue
+        self.log_queue = queue.Queue(-1)
+        self.queue_handler = QueueHandler(self.log_queue)
         self.build_gui()
 
     def on_quit(self):
@@ -92,7 +96,7 @@ class tapeimgrGUI(tk.Frame):
             inputValidateFlag = False
             msg = ('Tape device is not accessible')
             tkMessageBox.showerror("ERROR", msg)
-    
+
         if not self.tape.blockSizeIsValid:
             inputValidateFlag = False
             msg = ('Block size not valid')
@@ -111,7 +115,7 @@ class tapeimgrGUI(tk.Frame):
                    'press OK to continue, otherwise press Cancel ')
             outDirConfirmFlag = tkMessageBox.askokcancel("Overwrite files?", msg)
 
-        if (inputValidateFlag and outDirConfirmFlag):
+        if inputValidateFlag and outDirConfirmFlag:
 
             # Start logger
             successLogger = True
@@ -275,9 +279,6 @@ class tapeimgrGUI(tk.Frame):
         # Add the handler to logger
         self.logger = logging.getLogger()
 
-        # Create a logging handler using a queue
-        self.log_queue = queue.Queue(-1)
-        self.queue_handler = QueueHandler(self.log_queue)
         # This sets the console output format (slightly different from basicConfig!)
         formatter = logging.Formatter('%(levelname)s: %(message)s')
         self.queue_handler.setFormatter(formatter)

@@ -43,6 +43,7 @@ class tapeimgrCLI:
         self.prefix = config.prefix
         self.extension = config.extension
         self.fillBlocks = bool(config.fillBlocks)
+        self.logger = logging.getLogger()
 
 
     def parseCommandLine(self):
@@ -165,8 +166,6 @@ class tapeimgrCLI:
         logging.basicConfig(filename=self.logFile,
                             level=logging.INFO,
                             format='%(asctime)s - %(levelname)s - %(message)s')
-
-        self.logger = logging.getLogger()
 
         # Add stream handler that directs logging output to stdout
         handler = logging.StreamHandler(sys.stdout)

@@ -42,6 +42,7 @@ class Tape:
         self.tapeDeviceIOError = False
         self.successFlag = True
         self.endOfTape = False
+        self.extractFile = False
         self.file = 1
         self.filesList = []
         self.blockSize = 0
