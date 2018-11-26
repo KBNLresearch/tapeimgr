@@ -19,8 +19,12 @@ def post_install():
     Creates .desktop files in user directory and on desktop
     """
 
-    uid = int(os.environ.get('SUDO_UID'))
-    gid = int(os.environ.get('SUDO_GID'))
+    uid = os.environ.get('SUDO_UID')
+    gid = os.environ.get('SUDO_GID')
+
+    if uid == None or gid == None:
+        msg = 'this script must be run as root'
+        errorExit(msg)
 
     # Locate applications and desktop directory
     desktopDir = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop')
@@ -63,7 +67,7 @@ def post_install():
             for line in desktopList:
                 fD.write(line + '\n')
         # Change owner to user (since script is executed as root)
-        os.chown(fDesktop, uid, gid)
+        os.chown(fDesktop, int(uid), int(gid))
     except:
         msg = 'Failed to create ' + fDesktop
         errorExit(msg)

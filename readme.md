@@ -12,7 +12,7 @@ Optionally run the following command, which creates a desktop launcher, and adds
 
     sudo tapeimgr-config
 
-Depending on your distro you main need to mark the desktop launcher as "trusted" ("Mark as Trusted").
+Depending on your distro, you may get an "Untrusted application launcher" warning the first time you try to run the desktop launcher. You can get rid of this by clicking on the "Mark as Trusted" button.
 
 ## Contributors
 
