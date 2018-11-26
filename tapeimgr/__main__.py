@@ -1,9 +1,9 @@
 #! /usr/bin/env python3
 
 
-"""rtape.__main__: executed when rtape directory is called as script."""
+"""tapeimgr.__main__: executed when tapeimgr directory is called as script."""
 
-from .gui import main
+from .tapeimgr import main
 
 main()
 

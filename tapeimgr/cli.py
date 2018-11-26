@@ -34,7 +34,6 @@ class tapeimgrCLI:
         self.parser = argparse.ArgumentParser(description='Read contents of tape. Each file'
                                               ' on the tape is stored as a separate file.',
                                               formatter_class=formatter)
-        self.finishedTape = False
         self.dirOut = os.path.expanduser("~")
         self.logFileName = config.logFileName
         self.tapeDevice = config.tapeDevice

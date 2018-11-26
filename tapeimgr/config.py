@@ -9,4 +9,3 @@ initBlockSize = 512
 prefix = 'session'
 extension = 'dd'
 fillBlocks = False
-finishedTape = False

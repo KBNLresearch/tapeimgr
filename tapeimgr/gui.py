@@ -36,7 +36,6 @@ class tapeimgrGUI(tk.Frame):
         """Initiate class"""
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.root = parent
-        self.finishedTape = False
         self.dirOut = os.path.expanduser("~")
         self.logFileName = config.logFileName
         self.tapeDevice = config.tapeDevice

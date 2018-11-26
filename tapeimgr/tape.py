@@ -179,8 +179,6 @@ class Tape:
         args.append('eject')
         mtStatus, mtOut, mtErr = shared.launchSubProcess(args)
 
-        self.finishedTape = True
-
         logging.info('# Success: ' + str(self.successFlag))
 
         if self.successFlag:
