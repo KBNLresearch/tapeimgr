@@ -24,8 +24,7 @@ def find_version(*file_paths):
 
 
 INSTALL_REQUIRES = [
-    'setuptools',
-    'python3-tk'
+    'setuptools'
 ]
 PYTHON_REQUIRES = '>=3.2'
 
@@ -45,7 +44,7 @@ setup(name='tapeimgr',
       url='https://github.com/KBNLresearch/tapeimgr',
       download_url=('https://github.com/KBNLresearch/tapeimgr/archive/' +
                     find_version('tapeimgr', 'tapeimgr.py') + '.tar.gz'),
-      package_data={'tapeimgr': ['*.*', 'conf/*.*']},
+      package_data={'tapeimgr': ['*.*', 'icons/*.*']},
       zip_safe=False,
       entry_points={'gui_scripts': [
           'tapeimgr = tapeimgr.tapeimgr:main'],
