@@ -31,13 +31,13 @@ PYTHON_REQUIRES = '>=3.2'
 
 setup(name='tapeimgr',
       packages=find_packages(),
-      version=find_version('tapeimgr', 'tapeimgr.py'),
+      version=find_version('tapeimgr', 'config.py'),
       license='Apache License 2.0',
       install_requires=INSTALL_REQUIRES,
       python_requires=PYTHON_REQUIRES,
-      platforms=['Windows'],
-      description='Tape reader',
-      long_description='Tape reader; wraps around Unix dd and mt tools',
+      platforms=['linux'],
+      description='Tape imager',
+      long_description='Tape imager/reader; wraps around Unix dd and mt tools',
       author='Johan van der Knijff',
       author_email='johan.vanderknijff@kb.nl',
       maintainer='Johan van der Knijff',
@@ -48,9 +48,9 @@ setup(name='tapeimgr',
       package_data={'tapeimgr': ['*.*']},
       zip_safe=False,
       entry_points={'gui_scripts': [
-          'tapeimgr = tapeimgr.tapeimgr:main',
-          'tapeimgr-configure = tapeimgr.configure:main',
-      ]},
+          'tapeimgr = tapeimgr.tapeimgr:main'],
+                    'console_scripts': [
+                        'tapeimgr = tapeimgr.tapeimgr:main']},
       classifiers=[
           'Programming Language :: Python :: 3',]
      )

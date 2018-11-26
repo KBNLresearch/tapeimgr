@@ -335,26 +335,12 @@ def errorExit(error):
     os._exit(1)
 
 
-def main_is_frozen():
-    """Return True if application is frozen (Py2Exe), and False otherwise"""
-    return (hasattr(sys, "frozen") or  # new py2exe
-            hasattr(sys, "importers") or  # old py2exe
-            imp.is_frozen("__main__"))  # tools/freeze
-
-
-def get_main_dir():
-    """Return application (installation) directory"""
-    if main_is_frozen():
-        return os.path.dirname(sys.executable)
-    return os.path.dirname(sys.argv[0])
-
-
 def main():
     """Main function"""
 
-    appDir = get_main_dir()
+    packageDir = os.path.dirname(os.path.abspath(__file__))
     root = tk.Tk()
-    root.iconphoto(True, tk.PhotoImage(file=os.path.join(appDir, 'icon.png')))
+    root.iconphoto(True, tk.PhotoImage(file=os.path.join(packageDir, 'icons', 'tapeimgr.png')))
     myGUI = tapeimgrGUI(root)
 
     while True:
