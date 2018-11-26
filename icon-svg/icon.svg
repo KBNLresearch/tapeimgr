@@ -15,7 +15,7 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.91 r13725"
-   sodipodi:docname="icon2.svg"
+   sodipodi:docname="icon.svg"
    inkscape:export-filename="/home/johan/kb/icon-tapeimgr/icon.png"
    inkscape:export-xdpi="11.025001"
    inkscape:export-ydpi="11.025001">
@@ -29,8 +29,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4"
-     inkscape:cx="461.24276"
-     inkscape:cy="347.25127"
+     inkscape:cx="365.27009"
+     inkscape:cy="431.53698"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -57,21 +57,35 @@
      id="layer1"
      transform="translate(0,-308.26772)">
     <rect
+       style="opacity:1;fill:#23ffff;fill-opacity:0.99441344;stroke:none;stroke-width:2.5;stroke-miterlimit:4;stroke-dasharray:2.5, 10;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect4140"
+       width="550"
+       height="550"
+       x="196.42857"
+       y="353.7908"
+       ry="63.214283"
+       rx="87.142838"
+       inkscape:export-filename="/home/johan/kb/icon-tapeimgr/tapeimgr.png"
+       inkscape:export-xdpi="10.472727"
+       inkscape:export-ydpi="10.472727" />
+    <rect
        style="opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:20;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect4432"
        width="516.42859"
-       height="342.85712"
-       x="215"
-       y="446.64792"
+       height="476.42856"
+       x="213.21428"
+       y="390.57654"
        rx="29.806318"
-       ry="17.713163"
-       inkscape:export-xdpi="16.800001"
-       inkscape:export-ydpi="16.800001" />
+       ry="24.613914"
+       inkscape:export-xdpi="10.472727"
+       inkscape:export-ydpi="10.472727"
+       inkscape:export-filename="/home/johan/kb/icon-tapeimgr/tapeimgr.png" />
     <g
        id="g4452"
-       transform="matrix(1.0922646,0,0,1.0974815,-21.781136,-14.896313)"
-       inkscape:export-xdpi="16.800001"
-       inkscape:export-ydpi="16.800001">
+       transform="matrix(1.1572637,0,0,1.162791,-53.023325,-41.849262)"
+       inkscape:export-xdpi="10.472727"
+       inkscape:export-ydpi="10.472727"
+       inkscape:export-filename="/home/johan/kb/icon-tapeimgr/tapeimgr.png">
       <path
          inkscape:connector-curvature="0"
          id="path4335"
