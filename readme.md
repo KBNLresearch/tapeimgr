@@ -6,6 +6,10 @@ Tapeimgr is currently only available on Linux (but you would probably have a har
 
     sudo apt-get install python3-tk
 
+## Installation
+
+Desktop launcher: Mark as Trusted
+
 ## Contributors
 
 Written by Johan van der Knijff. 

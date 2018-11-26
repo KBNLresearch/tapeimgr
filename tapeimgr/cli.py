@@ -186,7 +186,7 @@ def printWarning(msg):
     sys.stderr.write(msgString)
 
 def errorExit(msg):
-    """Print warning to stderr and exit"""
+    """Print error to stderr and exit"""
     msgString = ('ERROR: ' + msg + '\n')
     sys.stderr.write(msgString)
     sys.exit(1)
