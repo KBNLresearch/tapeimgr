@@ -8,11 +8,21 @@ Tapeimgr is currently only available on Linux (but you would probably have a har
 
 ## Installation
 
-Optionally run the following command, which creates a desktop launcher, and adds tapeimgr to the main menu:
+Install tapeimgr with the following command:
+
+    sudo pip install tapeimgr
+
+After this run the configuration script, which creates a desktop launcher, and adds tapeimgr to the main menu:
 
     sudo tapeimgr-config
 
 Depending on your distro, you may get an "Untrusted application launcher" warning the first time you try to run the desktop launcher. You can get rid of this by clicking on the "Mark as Trusted" button.
+
+## GUI operation
+
+Use the menu item or dsktop launcher to start tapeimgr. Since tapeimgr starts up with root privilige, which is needed to access the tape device.
+
+## Command-line operation
 
 ## Contributors
 
