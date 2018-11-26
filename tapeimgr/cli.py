@@ -44,7 +44,8 @@ class tapeimgrCLI:
         self.extension = config.extension
         self.fillBlocks = bool(config.fillBlocks)
         self.logger = logging.getLogger()
-
+        # Add stream handler that directs logging output to stdout
+        self.consoleHandler = logging.StreamHandler(sys.stdout)
 
     def parseCommandLine(self):
         """Parse command line"""
@@ -108,6 +109,9 @@ class tapeimgrCLI:
         # Parse command line arguments
         self.parseCommandLine()
 
+        # Set logFile
+        self.logFile = os.path.join(self.dirOut, self.logFileName)
+
         # Create tape instance
         self.tape = Tape(self.dirOut,
                          self.tapeDevice,
@@ -167,12 +171,11 @@ class tapeimgrCLI:
                             level=logging.INFO,
                             format='%(asctime)s - %(levelname)s - %(message)s')
 
-        # Add stream handler that directs logging output to stdout
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setLevel(logging.INFO)
+        # Console handler configuration
+        self.consoleHandler.setLevel(logging.INFO)
         formatter = logging.Formatter('%(levelname)s - %(message)s')
-        handler.setFormatter(formatter)
-        self.logger.addHandler(handler)
+        self.consoleHandler.setFormatter(formatter)
+        self.logger.addHandler(self.consoleHandler)
 
 
 def printInfo(msg):
