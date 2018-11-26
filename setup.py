@@ -49,7 +49,8 @@ setup(name='tapeimgr',
       entry_points={'gui_scripts': [
           'tapeimgr = tapeimgr.tapeimgr:main'],
                     'console_scripts': [
-                        'tapeimgr = tapeimgr.tapeimgr:main']},
+                        'tapeimgr = tapeimgr.tapeimgr:main',
+                        'tapeimgr-config = tapeimgr.configure:main']},
       classifiers=[
           'Programming Language :: Python :: 3',]
      )

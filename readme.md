@@ -8,7 +8,11 @@ Tapeimgr is currently only available on Linux (but you would probably have a har
 
 ## Installation
 
-Desktop launcher: Mark as Trusted
+Optionally run the following command, which creates a desktop launcher, and adds tapeimgr to the main menu:
+
+    sudo tapeimgr-config
+
+Depending on your distro you main need to mark the desktop launcher as "trusted" ("Mark as Trusted").
 
 ## Contributors
 
