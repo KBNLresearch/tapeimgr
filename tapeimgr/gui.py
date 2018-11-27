@@ -9,7 +9,6 @@ Research department,  KB / National Library of the Netherlands
 
 import sys
 import os
-import imp
 import time
 import threading
 import logging
@@ -168,7 +167,7 @@ class tapeimgrGUI(tk.Frame):
     def build_gui(self):
         """Build the GUI"""
 
-        self.root.title('tapeimgr')
+        self.root.title('tapeimgr v.' + config.version)
         self.root.option_add('*tearOff', 'FALSE')
         self.grid(column=0, row=0, sticky='w')
         self.grid_columnconfigure(0, weight=0, pad=0)
