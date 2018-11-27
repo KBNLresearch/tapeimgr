@@ -199,6 +199,10 @@ class Tape:
             logging.error('One or more errors occurred while processing tape, \
             check log file for details')
 
+        # Change owner of log file to user (since script is executed as root)
+        if os.path.isfile(self.logFile):
+            os.chown(self.logFile, int(self.uid), int(self.gid))
+
         # Wait 2 seconds to avoid race condition
         time.sleep(2)
         # This triggers a KeyboardInterrupt in the main thread
