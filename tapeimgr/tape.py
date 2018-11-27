@@ -20,7 +20,8 @@ class Tape:
                  files,
                  prefix,
                  extension,
-                 fillBlocks):
+                 fillBlocks,
+                 logFile):
         """initialise Tape class instance"""
 
         # Input collected by GUI / CLI
@@ -31,6 +32,7 @@ class Tape:
         self.prefix = prefix
         self.extension = extension
         self.fillBlocks = fillBlocks
+        self.logFile = logFile
         # Input validation flags
         self.dirOutIsDirectory = False
         self.outputExistsFlag = False

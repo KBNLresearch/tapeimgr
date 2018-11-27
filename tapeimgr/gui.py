@@ -74,7 +74,8 @@ class tapeimgrGUI(tk.Frame):
                          self.files,
                          self.prefix,
                          self.extension,
-                         self.fillBlocks)
+                         self.fillBlocks,
+                         self.logFile)
         # Validate input
         self.tape.validateInput()
 
