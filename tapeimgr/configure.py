@@ -4,6 +4,7 @@
 
 import os
 import io
+import json
 import sys
 from shutil import copyfile
 
@@ -20,31 +21,55 @@ def infoMessage(msg):
 
 def post_install():
     """
-    Creates .desktop files in user directory and on desktop
+    Creates config file + .desktop files in user directory and on desktop
     """
 
-    uid = os.environ.get('SUDO_UID')
-    gid = os.environ.get('SUDO_GID')
+    sudoUser = os.environ.get('SUDO_USER')
+    sudoUID = os.environ.get('SUDO_UID')
+    sudoGID = os.environ.get('SUDO_GID')
 
-    if uid is None or gid is None:
+    if sudoUID is None or sudoGID is None:
         msg = 'this script must be run as root'
         errorExit(msg)
 
-    # Locate applications and desktop directory
+    # Locate /etc, applications and desktop directories
+    etcDir = os.path.normpath('/etc/')
     desktopDir = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop')
     applicationsDir = os.path.normpath('/usr/share/applications')
 
     # Check if directories are writable
+
+    if not os.access(etcDir, os.W_OK | os.X_OK):
+        msg = 'cannot write to ' + etcDir
+        errorExit(msg)
+
     if not os.access(desktopDir, os.W_OK | os.X_OK):
-        msg = 'cannot write to Desktop folder'
+        msg = 'cannot write to ' + desktopDir
         errorExit(msg)
 
     if not os.access(applicationsDir, os.W_OK | os.X_OK):
         msg = 'cannot write to ' + applicationsDir
         errorExit(msg)
 
+    configDir = os.path.join(etcDir, 'tapeimgr')
     fDesktop = os.path.join(desktopDir, 'tapeimgr.desktop')
     fApplications = os.path.join(applicationsDir, 'tapeimgr.desktop')
+
+    # Create configuration directory
+    if not os.path.isdir(configDir):
+        os.mkdir(configDir)
+    fConfig = os.path.join(configDir, 'tapeimgr.json')
+
+    # Dictionary with items in config file
+    configSettings = {}
+    configSettings['SUDO_USER'] = sudoUser
+    configSettings['SUDO_UID'] = sudoUID
+    configSettings['SUDO_GID'] = sudoGID
+
+    # Write to config file in json format
+    infoMessage('writing configuration ...')
+    with open(fConfig, 'w') as f:
+        json.dump(configSettings, f, indent=4, sort_keys=True)
 
     # Locate pkexec and icon files in package dir
     packageDir = os.path.dirname(os.path.abspath(__file__))
@@ -124,7 +149,7 @@ def post_install():
             for line in desktopList:
                 fD.write(line + '\n')
         # Change owner to user (since script is executed as root)
-        os.chown(fDesktop, int(uid), int(gid))
+        os.chown(fDesktop, int(sudoUID), int(sudoGID))
     except:
         msg = 'Failed to create ' + fDesktop
         errorExit(msg)
