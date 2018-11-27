@@ -171,8 +171,8 @@ class Tape:
         shared.checksumDirectory(self.dirOut, self.extension, checksumFile)
 
         # Change owner to user (since script is executed as root)
-        if os.path.isfile(checksumFile):
-            os.chown(checksumFile, int(self.uid), int(self.gid))
+        #if os.path.isfile(checksumFile):
+        #    os.chown(checksumFile, int(self.uid), int(self.gid))
 
         # Rewind and eject the tape
         logging.info('*** Rewinding tape ***')
@@ -200,8 +200,8 @@ class Tape:
             check log file for details')
 
         # Change owner of log file to user (since script is executed as root)
-        if os.path.isfile(self.logFile):
-            os.chown(self.logFile, int(self.uid), int(self.gid))
+        #if os.path.isfile(self.logFile):
+        #    os.chown(self.logFile, int(self.uid), int(self.gid))
 
         # Wait 2 seconds to avoid race condition
         time.sleep(2)
@@ -236,11 +236,8 @@ class Tape:
             ddStatus, ddOut, ddErr = shared.launchSubProcess(args)
 
             # Change owner of extracted file to user (since script is executed as root)
-            if os.path.isfile(ofName):
-                ## TEST
-                logging.info('uid = ' + self.uid + ' gid = ' + self.gid)
-                ## TEST
-                os.chown(ofName, int(self.uid), int(self.gid))
+            #if os.path.isfile(ofName):
+            #    os.chown(ofName, int(self.uid), int(self.gid))
 
             if ddStatus != 0:
                 self.successFlag = False
