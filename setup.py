@@ -44,7 +44,7 @@ setup(name='tapeimgr',
       url='https://github.com/KBNLresearch/tapeimgr',
       download_url=('https://github.com/KBNLresearch/tapeimgr/archive/' +
                     find_version('tapeimgr', 'tapeimgr.py') + '.tar.gz'),
-      package_data={'tapeimgr': ['*.*', 'icons/*.*']},
+      package_data={'tapeimgr': ['*.*', 'icons/*.*', 'pkexec/*.*']},
       zip_safe=False,
       entry_points={'gui_scripts': [
           'tapeimgr = tapeimgr.tapeimgr:main'],
