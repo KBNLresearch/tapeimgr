@@ -46,6 +46,8 @@ class Tape:
         self.file = 1
         self.filesList = []
         self.blockSize = 0
+        self.uid = os.environ.get('SUDO_UID')
+        self.gid = os.environ.get('SUDO_GID')
 
     def validateInput(self):
         """Validate and pre-process input"""
@@ -163,7 +165,12 @@ class Tape:
 
         # Create checksum file
         logging.info('*** Creating checksum file ***')
-        shared.checksumDirectory(self.dirOut, self.extension)
+        checksumFile = os.path.join(self.dirOut, "checksums.sha512")
+        shared.checksumDirectory(self.dirOut, self.extension, checksumFile)
+
+        # Change owner to user (since script is executed as root)
+        if os.path.isfile(checksumFile):
+            os.chown(checksumFile, int(self.uid), int(self.gid))
 
         # Rewind and eject the tape
         logging.info('*** Rewinding tape ***')
@@ -221,6 +228,10 @@ class Tape:
                 args.append('conv=noerror,sync')
 
             ddStatus, ddOut, ddErr = shared.launchSubProcess(args)
+
+            # Change owner of extracted file to user (since script is executed as root)
+            if os.path.isfile(ofName):
+                os.chown(ofName, int(self.uid), int(self.gid))
 
             if ddStatus != 0:
                 self.successFlag = False

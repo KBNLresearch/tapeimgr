@@ -66,7 +66,7 @@ def generate_file_sha512(fileIn):
     return m.hexdigest()
 
 
-def checksumDirectory(directory, extension):
+def checksumDirectory(directory, extension, checksumFile):
     """Calculate checksums for all files in directory"""
 
     # All files in directory
@@ -81,7 +81,7 @@ def checksumDirectory(directory, extension):
 
     # Write checksum file
     try:
-        fChecksum = open(os.path.join(directory, "checksums.sha512"), "w", encoding="utf-8")
+        fChecksum = open(checksumFile, "w", encoding="utf-8")
         for fName in checksums:
             lineOut = checksums[fName] + " " + os.path.basename(fName) + '\n'
             fChecksum.write(lineOut)
