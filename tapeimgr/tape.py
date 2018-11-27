@@ -237,6 +237,9 @@ class Tape:
 
             # Change owner of extracted file to user (since script is executed as root)
             if os.path.isfile(ofName):
+                ## TEST
+                logging.info('uid = ' + self.uid + ' gid = ' + self.gid)
+                ## TEST
                 os.chown(ofName, int(self.uid), int(self.gid))
 
             if ddStatus != 0:
