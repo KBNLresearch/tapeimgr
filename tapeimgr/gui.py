@@ -32,7 +32,12 @@ class tapeimgrGUI(tk.Frame):
         """Initiate class"""
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.root = parent
-        self.dirOut = os.path.expanduser("~")
+        try:
+            # If executed as root, return normal user's home directory
+            self.dirOut = os.path.normpath('/home/' + os.getenv('SUDO_USER'))
+        except TypeError:
+            # SUDO_USER doesn't exist if not executed as root
+            self.dirOut = os.path.expanduser("~")
         self.logFileName = config.logFileName
         self.tapeDevice = config.tapeDevice
         self.initBlockSize = config.initBlockSize
