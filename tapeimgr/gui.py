@@ -9,6 +9,8 @@ Research department,  KB / National Library of the Netherlands
 
 import sys
 import os
+import io
+import json
 import time
 import threading
 import logging
@@ -32,29 +34,68 @@ class tapeimgrGUI(tk.Frame):
         """Initiate class"""
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.root = parent
+        self.SUDO_USER = ''
+        self.SUDO_UID = ''
+        self.SUDO_GID = ''
+        self.dirOut = ''
+        self.logFileName = ''
+        self.tapeDevice = ''
+        self.initBlockSize = ''
+        self.initBlockSizeDefault = ''
+        self.files = ''
+        self.logFile = ''
+        self.prefix = ''
+        self.extension = ''
+        self.fillBlocks = False
+        self.configFile = os.path.normpath('/etc/tapeimgr/tapeimgr.json')
+        # Flag that is True if configuration file was read withourt errors, and False if not
+        self.configSuccess = True
+        # Logging stuff
+        self.logger = logging.getLogger()
+        # Create a logging handler using a queue
+        self.log_queue = queue.Queue(-1)
+        self.queue_handler = QueueHandler(self.log_queue)
+        self.getConfiguration()
+        self.build_gui()
+
+    def on_quit(self):
+        """Quit tapeimgr"""
+        os._exit(0)
+
+    def getConfiguration(self):
+        """read configuration file and set variables accordingly"""
+        if not os.path.isfile(self.configFile):
+            self.configSuccess = False
+
+        # Read config file to dictionary
+        try:
+            with io.open(self.configFile, 'r', encoding='utf-8') as f:
+                configDict = json.load(f)
+        except:
+            self.configSuccess = False
+
+        # Update class variables
+        try:
+            self.SUDO_USER = configDict['SUDO_USER']
+            self.SUDO_UID = configDict['SUDO_UID']
+            self.SUDO_GID = configDict['SUDO_GID']
+            self.files = configDict['files']
+            self.logFileName = configDict['logFileName']
+            self.tapeDevice = configDict['tapeDevice']
+            self.initBlockSize = configDict['initBlockSize']
+            self.initBlockSizeDefault = self.initBlockSize
+            self.prefix = configDict['prefix']
+            self.extension = configDict['extension']
+            self.fillBlocks = bool(configDict['fillBlocks'])
+        except KeyError:
+            self.configSuccess = False
+
         try:
             # If executed as root, return normal user's home directory
             self.dirOut = os.path.normpath('/home/' + os.getenv('SUDO_USER'))
         except TypeError:
             # SUDO_USER doesn't exist if not executed as root
             self.dirOut = os.path.expanduser("~")
-        self.logFileName = config.logFileName
-        self.tapeDevice = config.tapeDevice
-        self.initBlockSize = config.initBlockSize
-        self.files = ''
-        self.logFile = ''
-        self.prefix = config.prefix
-        self.extension = config.extension
-        self.fillBlocks = bool(config.fillBlocks)
-        self.logger = logging.getLogger()
-        # Create a logging handler using a queue
-        self.log_queue = queue.Queue(-1)
-        self.queue_handler = QueueHandler(self.log_queue)
-        self.build_gui()
-
-    def on_quit(self):
-        """Quit tapeimgr"""
-        os._exit(0)
 
     def on_submit(self):
         """fetch and validate entered input, and start processing"""
@@ -153,7 +194,7 @@ class tapeimgrGUI(tk.Frame):
             blockSizeOld = int(self.initBlockSize_entry.get().strip())
         except ValueError:
             # Reset if user manually entered something weird
-            blockSizeOld = int(config.initBlockSize)
+            blockSizeOld = int(self.initBlockSizeDefault)
         blockSizeNew = max(blockSizeOld - 512, 512)
         self.initBlockSize_entry.delete(0, tk.END)
         self.initBlockSize_entry.insert(tk.END, str(blockSizeNew))
@@ -164,7 +205,7 @@ class tapeimgrGUI(tk.Frame):
             blockSizeOld = int(self.initBlockSize_entry.get().strip())
         except ValueError:
             # Reset if user manually entered something weird
-            blockSizeOld = int(config.initBlockSize)
+            blockSizeOld = int(self.initBlockSizeDefault)
         blockSizeNew = blockSizeOld + 512
         self.initBlockSize_entry.delete(0, tk.END)
         self.initBlockSize_entry.insert(tk.END, str(blockSizeNew))
@@ -269,6 +310,12 @@ class tapeimgrGUI(tk.Frame):
 
         for child in self.winfo_children():
             child.grid_configure(padx=5, pady=5)
+
+        # Display message and exit if config file could not be read
+        if not self.configSuccess:
+            msg = ("Error reading configuration file! \n" +
+                   "Run 'sudo tapeimgr-config' to fix this.")
+            errorExit(msg)
 
     def setupLogger(self):
         """Set up logger configuration"""

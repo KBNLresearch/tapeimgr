@@ -9,6 +9,8 @@ Research department,  KB / National Library of the Netherlands
 
 import sys
 import os
+import io
+import json
 import logging
 import argparse
 from .tape import Tape
@@ -31,15 +33,23 @@ class tapeimgrCLI:
         self.parser = argparse.ArgumentParser(description='Read contents of tape. Each file'
                                               ' on the tape is stored as a separate file.',
                                               formatter_class=formatter)
-        self.dirOut = os.path.expanduser("~")
-        self.logFileName = config.logFileName
-        self.tapeDevice = config.tapeDevice
-        self.initBlockSize = config.initBlockSize
+        self.SUDO_USER = ''
+        self.SUDO_UID = ''
+        self.SUDO_GID = ''
+        self.dirOut = ''
+        self.logFileName = ''
+        self.tapeDevice = ''
+        self.initBlockSize = ''
+        self.initBlockSizeDefault = ''
         self.files = ''
         self.logFile = ''
-        self.prefix = config.prefix
-        self.extension = config.extension
-        self.fillBlocks = bool(config.fillBlocks)
+        self.prefix = ''
+        self.extension = ''
+        self.fillBlocks = False
+        self.configFile = os.path.normpath('/etc/tapeimgr/tapeimgr.json')
+        # Flag that is True if configuration file was read withourt errors, and False if not
+        self.configSuccess = True
+        # Logging stuff
         self.logger = logging.getLogger()
         # Add stream handler that directs logging output to stdout
         self.consoleHandler = logging.StreamHandler(sys.stdout)
@@ -100,8 +110,51 @@ class tapeimgrCLI:
         self.prefix = args.pref
         self.extension = args.ext
 
+    def getConfiguration(self):
+        """read configuration file and set variables accordingly"""
+        if not os.path.isfile(self.configFile):
+            self.configSuccess = False
+
+        # Read config file to dictionary
+        try:
+            with io.open(self.configFile, 'r', encoding='utf-8') as f:
+                configDict = json.load(f)
+        except:
+            self.configSuccess = False
+
+        # Update class variables
+        try:
+            self.SUDO_USER = configDict['SUDO_USER']
+            self.SUDO_UID = configDict['SUDO_UID']
+            self.SUDO_GID = configDict['SUDO_GID']
+            self.files = configDict['files']
+            self.logFileName = configDict['logFileName']
+            self.tapeDevice = configDict['tapeDevice']
+            self.initBlockSize = configDict['initBlockSize']
+            self.initBlockSizeDefault = self.initBlockSize
+            self.prefix = configDict['prefix']
+            self.extension = configDict['extension']
+            self.fillBlocks = bool(configDict['fillBlocks'])
+        except KeyError:
+            self.configSuccess = False
+
+        try:
+            # If executed as root, return normal user's home directory
+            self.dirOut = os.path.normpath('/home/' + os.getenv('SUDO_USER'))
+        except TypeError:
+            # SUDO_USER doesn't exist if not executed as root
+            self.dirOut = os.path.expanduser("~")
+
     def process(self):
         """fetch and validate entered input, and start processing"""
+
+        # Read configuration file
+        self.getConfiguration()
+
+        if not self.configSuccess:
+            msg = ("Error reading configuration file! \n" +
+                   "Run 'sudo tapeimgr-config' to fix this.")
+            errorExit(msg)
 
         # Parse command line arguments
         self.parseCommandLine()

@@ -71,10 +71,11 @@ def post_install():
     configSettings['initBlockSize'] = '512'
     configSettings['prefix'] = 'file'
     configSettings['extension'] = 'dd'
+    configSettings['fillBlocks'] = 'False'
 
     # Write to config file in json format
     infoMessage('writing configuration ...')
-    with open(fConfig, 'w') as f:
+    with io.open(fConfig, 'w', encoding='utf-8') as f:
         json.dump(configSettings, f, indent=4, sort_keys=True)
 
     # Locate pkexec and icon files in package dir
@@ -151,7 +152,7 @@ def post_install():
     # Write desktop file to Desktop
     try:
         infoMessage('creating desktop launcher ...')
-        with io.open(fDesktop, "w", encoding="utf-8") as fD:
+        with io.open(fDesktop, 'w', encoding='utf-8') as fD:
             for line in desktopList:
                 fD.write(line + '\n')
         # Change owner to user (since script is executed as root)
@@ -163,7 +164,7 @@ def post_install():
     # Write desktop file to applications directory
     try:
         infoMessage('creating launcher in applications directory ...')
-        with io.open(fApplications, "w", encoding="utf-8") as fA:
+        with io.open(fApplications, 'w', encoding='utf-8') as fA:
             for line in desktopList:
                 fA.write(line + '\n')
     except:
