@@ -92,7 +92,7 @@ class tapeimgrGUI(tk.Frame):
 
         try:
             # If executed as root, return normal user's home directory
-            self.dirOut = os.path.normpath('/home/' + os.getenv('SUDO_USER'))
+            self.dirOut = os.path.normpath('/home/' + self.SUDO_USER)
         except TypeError:
             # SUDO_USER doesn't exist if not executed as root
             self.dirOut = os.path.expanduser("~")
