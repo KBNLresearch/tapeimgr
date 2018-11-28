@@ -12,7 +12,7 @@ At this stage *tapeimgr* has only had limited testing with a small number of DDS
 
 ## System requirements
 
-- **OS: Linux-only** (but you would probably have a hard time setting up a tape drive on Windows to begin with). Tested with Ubuntu 18.04 LTS (Bionic) and Linux Mint 18.3, which is based on Ubuntu 16.04 (Xenial).
+- **OS: Linux-only** (but you would probably have a hard time setting up a tape drive on Windows to begin with). Tested so far with Ubuntu 18.04 LTS (Bionic) and Linux Mint 18.3, which is based on Ubuntu 16.04 (Xenial).
 
 - **Python 3.2 or more recent** (Python 2.x is not supported)
 
@@ -110,6 +110,26 @@ As with the GUI interface you can customize the default behaviour by using one o
 |`--prefix PREF, -p PREF`|Output prefix (default: `file`).|
 |`--extension EXT, -e EXT`|Output file extension (default: `dd`).|
 |`--fill, -f`|Fill blocks that give read errors with null bytes. When this option is checked, *tapeimgr* calls *dd* with the flags `conv=noerror,sync`. The use of these flags is often recommended to ensure a forensic image with no missing/offset bytes in case of read errors (source: [*forensicswiki*](https://www.forensicswiki.org/wiki/Dd)), but when used with a block size that is larger than the actual block size it will generate padding bytes that make the extracted data unreadable. Because of this, any user-specified value of the `--blocksize`setting (see above) is ignored when this option is used. **WARNING: this option may result in malformed output if the actual block size is either smaller than 512 bytes, and/or if the block size is not a multiple of 512 bytes! (I have no idea if this is even possible?).**|
+
+## Uninstalling tapeimgr
+
+To remove *tapeimgr*, first run the *tapeimgr-config* with the `--remove` flag to remove the configuration file, the pkexec launcher, the the pkexec policy file and the desktop files:
+
+    sudo tapeimgr-config --remove
+
+The resulting output:
+
+    INFO: removing configuration file /etc/tapeimgr/tapeimgr.json
+    INFO: removing configuration directory /etc/tapeimgr
+    INFO: removing pkexec launcher file /usr/local/bin/tapeimgr-pkexec
+    INFO: removing policy file /usr/share/polkit-1/actions/com.ubuntu.pkexec.tapeimgr.policy
+    INFO: removing desktop file /home/johan/Desktop/tapeimgr.desktop
+    INFO: removing desktop file /usr/share/applications/tapeimgr.desktop
+    INFO: tapeimgr configuration completed successfully!
+
+Then run the following command to remove the python package:
+
+    sudo pip3 uninstall tapeimgr
 
 ## Contributors
 
