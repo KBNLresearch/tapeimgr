@@ -267,7 +267,7 @@ class Tape:
             args.append(self.tapeDevice)
             args.append('fsf')
             args.append('1')
-            mtStatus, mtOut, mtErr = shared.launchSubProcess(args)
+            mtStatus, mtOut, mtErr = shared.launchSubProcess(args, False)
 
         # Try to position tape 1 record forward; if this fails this means
         # the end of the tape was reached
@@ -276,7 +276,7 @@ class Tape:
         args.append(self.tapeDevice)
         args.append('fsr')
         args.append('1')
-        mtStatus, mtOut, mtErr = shared.launchSubProcess(args)
+        mtStatus, mtOut, mtErr = shared.launchSubProcess(args, False)
 
         if mtStatus == 0:
             # Another file exists. Position tape one record backward
@@ -285,7 +285,7 @@ class Tape:
             args.append(self.tapeDevice)
             args.append('bsr')
             args.append('1')
-            mtStatus, mtOut, mtErr = shared.launchSubProcess(args)
+            mtStatus, mtOut, mtErr = shared.launchSubProcess(args, False)
         else:
             # No further files, end of tape reached
             logging.info('*** Reached end of tape ***')
