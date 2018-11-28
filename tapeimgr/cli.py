@@ -266,6 +266,7 @@ def main():
             # Tape extraction completed with no errors
             msg = ('Tape processed successfully without errors!')
             printInfo(msg)
+            sys.exit(0)
         else:
             # Tape extraction resulted in errors
             msg = ('One or more errors occurred while processing tape, '
