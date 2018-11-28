@@ -65,6 +65,12 @@ def post_install():
     configSettings['SUDO_USER'] = sudoUser
     configSettings['SUDO_UID'] = sudoUID
     configSettings['SUDO_GID'] = sudoGID
+    configSettings['files'] = ''
+    configSettings['logFileName'] = 'tapeimgr.log'
+    configSettings['tapeDevice'] = '/dev/nst0'
+    configSettings['initBlockSize'] = '512'
+    configSettings['prefix'] = 'file'
+    configSettings['extension'] = 'dd'
 
     # Write to config file in json format
     infoMessage('writing configuration ...')
