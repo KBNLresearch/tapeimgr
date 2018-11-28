@@ -18,7 +18,7 @@ At this stage *tapeimgr* has only had limited testing with a small number of DDS
 
 - **Tkinter**. If *tkinter* is not installed already, you need to use the OS's package manager to install (there is no PyInstaller package for *tkinter*). If you're using *apt* this should work:
 
-    sudo apt-get install python3-tk
+        sudo apt-get install python3-tk
 
 - **dd** and **mt** (but these are available by default on all Linux platforms) activated
 
