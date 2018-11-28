@@ -91,3 +91,15 @@ def checksumDirectory(directory, extension, checksumFile):
         wroteChecksums = False
 
     return wroteChecksums
+
+
+def changeOwner(fileRef, uid, gid):
+    """Change owner of file"""
+    try:
+        if os.path.isfile(fileRef):
+            os.chown(fileRef, uid, gid)
+        successFlag = True
+    except:
+        successFlag = False
+
+    return successFlag

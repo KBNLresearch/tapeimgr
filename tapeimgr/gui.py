@@ -120,7 +120,10 @@ class tapeimgrGUI(tk.Frame):
                          self.prefix,
                          self.extension,
                          self.fillBlocks,
-                         self.logFile)
+                         self.logFile,
+                         self.SUDO_UID,
+                         self.SUDO_GID)
+
         # Validate input
         self.tape.validateInput()
 
