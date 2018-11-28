@@ -12,7 +12,7 @@ At this stage *tapeimgr* has only had limited testing with a small number of DDS
 
 ## System requirements
 
-- **OS: Linux-only** (but you would probably have a hard time setting up a tape drive on Windows to begin with). Tested so far with Ubuntu 18.04 LTS (Bionic) and Linux Mint 18.3, which is based on Ubuntu 16.04 (Xenial).
+*Tapeimgr* is only available for Linux (but you would probably have a hard time setting up a tape drive on Windows to begin with). So far it has been tested with Ubuntu 18.04 LTS (Bionic) and Linux Mint 18.3, which is based on Ubuntu 16.04 (Xenial). In addition it has the following dependencies (many distros have most or all of these installed by default):
 
 - **Python 3.2 or more recent** (Python 2.x is not supported)
 
@@ -21,6 +21,9 @@ At this stage *tapeimgr* has only had limited testing with a small number of DDS
     sudo apt-get install python3-tk
 
 - **dd** and **mt** (but these are available by default on all Linux platforms) activated
+
+- The [**polkit**](https://www.freedesktop.org/wiki/Software/polkit/) toolkit, which is used to launch *tapeimgr* as root. Note that many Linux distros (e.g.Ubuntu, Linux Mint) have **polkit** installed by default.  
+
 
 ## Installation
 
