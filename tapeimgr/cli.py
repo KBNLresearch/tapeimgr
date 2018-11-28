@@ -121,29 +121,30 @@ class tapeimgrCLI:
                 configDict = json.load(f)
         except:
             self.configSuccess = False
+        
+        if self.configSuccess:
+            # Update class variables
+            try:
+                self.SUDO_USER = configDict['SUDO_USER']
+                self.SUDO_UID = configDict['SUDO_UID']
+                self.SUDO_GID = configDict['SUDO_GID']
+                self.files = configDict['files']
+                self.logFileName = configDict['logFileName']
+                self.tapeDevice = configDict['tapeDevice']
+                self.initBlockSize = configDict['initBlockSize']
+                self.initBlockSizeDefault = self.initBlockSize
+                self.prefix = configDict['prefix']
+                self.extension = configDict['extension']
+                self.fillBlocks = bool(configDict['fillBlocks'])
+            except KeyError:
+                self.configSuccess = False
 
-        # Update class variables
-        try:
-            self.SUDO_USER = configDict['SUDO_USER']
-            self.SUDO_UID = configDict['SUDO_UID']
-            self.SUDO_GID = configDict['SUDO_GID']
-            self.files = configDict['files']
-            self.logFileName = configDict['logFileName']
-            self.tapeDevice = configDict['tapeDevice']
-            self.initBlockSize = configDict['initBlockSize']
-            self.initBlockSizeDefault = self.initBlockSize
-            self.prefix = configDict['prefix']
-            self.extension = configDict['extension']
-            self.fillBlocks = bool(configDict['fillBlocks'])
-        except KeyError:
-            self.configSuccess = False
-
-        try:
-            # If executed as root, return normal user's home directory
-            self.dirOut = os.path.normpath('/home/' + os.getenv('SUDO_USER'))
-        except TypeError:
-            # SUDO_USER doesn't exist if not executed as root
-            self.dirOut = os.path.expanduser("~")
+            try:
+                # If executed as root, return normal user's home directory
+                self.dirOut = os.path.normpath('/home/' + self.SUDO_USER)
+            except TypeError:
+                # SUDO_USER doesn't exist if not executed as root
+                self.dirOut = os.path.expanduser("~")
 
     def process(self):
         """fetch and validate entered input, and start processing"""
