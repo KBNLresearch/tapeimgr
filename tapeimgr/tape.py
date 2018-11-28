@@ -43,8 +43,8 @@ class Tape:
         self.blockSizeIsValid = False
         self.filesIsValid = False
         # Miscellaneous attributes
-        self.SUDO_UID = ''
-        self.SUDO_GID = ''
+        self.SUDO_UID = SUDO_UID
+        self.SUDO_GID = SUDO_GID
         self.tapeDeviceIOError = False
         self.successFlag = True
         self.endOfTape = False
