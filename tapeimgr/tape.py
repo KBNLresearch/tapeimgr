@@ -5,6 +5,8 @@ do the actual tape imaging.
 
 import os
 import sys
+import io
+import json
 import time
 import logging
 import glob
@@ -14,16 +16,16 @@ from . import shared
 class Tape:
     """Tape class"""
     def __init__(self,
-                 dirOut,
-                 tapeDevice,
-                 initBlockSize,
-                 files,
-                 prefix,
-                 extension,
-                 fillBlocks,
-                 logFile,
-                 SUDO_UID,
-                 SUDO_GID):
+                 dirOut='',
+                 tapeDevice='',
+                 initBlockSize='',
+                 files='',
+                 prefix='',
+                 extension='',
+                 fillBlocks='',
+                 SUDO_USER='',
+                 SUDO_UID='',
+                 SUDO_GID=''):
         """initialise Tape class instance"""
 
         # Input collected by GUI / CLI
@@ -34,7 +36,6 @@ class Tape:
         self.prefix = prefix
         self.extension = extension
         self.fillBlocks = fillBlocks
-        self.logFile = logFile
         # Input validation flags
         self.dirOutIsDirectory = False
         self.outputExistsFlag = False
@@ -43,15 +44,77 @@ class Tape:
         self.blockSizeIsValid = False
         self.filesIsValid = False
         # Miscellaneous attributes
+        self.configFile = os.path.normpath('/etc/tapeimgr/tapeimgr.json')
+        self.SUDO_USER = SUDO_USER
         self.SUDO_UID = SUDO_UID
         self.SUDO_GID = SUDO_GID
+        self.logFile = ''
+        self.logFileName = ''
+        self.initBlockSizeDefault = ''
         self.tapeDeviceIOError = False
         self.successFlag = True
+        self.configSuccess = True
         self.endOfTape = False
         self.extractFile = False
         self.file = 1
         self.filesList = []
         self.blockSize = 0
+
+    def getConfiguration(self):
+        """read configuration file and set variables accordingly"""
+        if not os.path.isfile(self.configFile):
+            self.configSuccess = False
+
+        # Read config file to dictionary
+        try:
+            with io.open(self.configFile, 'r', encoding='utf-8') as f:
+                configDict = json.load(f)
+        except:
+            self.configSuccess = False
+        
+        if self.configSuccess:
+            # Update class variables
+            try:
+                self.SUDO_USER = configDict['SUDO_USER']
+                self.SUDO_UID = configDict['SUDO_UID']
+                self.SUDO_GID = configDict['SUDO_GID']
+                self.files = configDict['files']
+                self.logFileName = configDict['logFileName']
+                self.tapeDevice = configDict['tapeDevice']
+                self.initBlockSize = configDict['initBlockSize']
+                self.initBlockSizeDefault = self.initBlockSize
+                self.prefix = configDict['prefix']
+                self.extension = configDict['extension']
+                self.fillBlocks = bool(configDict['fillBlocks'])
+            except KeyError:
+                self.configSuccess = False
+
+            try:
+                # If executed as root, return normal user's home directory
+                self.dirOut = os.path.normpath('/home/' + self.SUDO_USER)
+            except TypeError:
+                # SUDO_USER doesn't exist if not executed as root
+                self.dirOut = os.path.expanduser("~")
+
+    def getUserInput(self,
+                     dirOut='',
+                     tapeDevice='',
+                     initBlockSize='',
+                     files='',
+                     prefix='',
+                     extension='',
+                     fillBlocks=''):
+        """Assign user input collected by CLI/GUI to class variables"""
+
+        self.dirOut = dirOut
+        self.tapeDevice = tapeDevice
+        self.initBlockSize = initBlockSize
+        self.files = files
+        self.prefix = prefix
+        self.extension = extension
+        self.fillBlocks = fillBlocks
+        self.logFile = os.path.join(self.dirOut, self.logFileName)
+
 
     def validateInput(self):
         """Validate and pre-process input"""

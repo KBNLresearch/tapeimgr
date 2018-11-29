@@ -47,7 +47,6 @@ class tapeimgrGUI(tk.Frame):
         self.prefix = ''
         self.extension = ''
         self.fillBlocks = False
-        self.configFile = os.path.normpath('/etc/tapeimgr/tapeimgr.json')
         # Flag that is True if configuration file was read withourt errors, and False if not
         self.configSuccess = True
         # Logging stuff
