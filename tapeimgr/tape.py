@@ -105,6 +105,7 @@ class Tape:
                      extension='',
                      fillBlocks=''):
         """Assign user input collected by CLI/GUI to class variables"""
+        # TODO not used / maybe not needed as we can set instance variables directly in GUI /CLI??
 
         self.dirOut = dirOut
         self.tapeDevice = tapeDevice

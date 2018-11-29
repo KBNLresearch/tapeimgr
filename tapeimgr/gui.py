@@ -9,8 +9,6 @@ Research department,  KB / National Library of the Netherlands
 
 import sys
 import os
-import io
-import json
 import time
 import threading
 import logging
@@ -34,68 +32,21 @@ class tapeimgrGUI(tk.Frame):
         """Initiate class"""
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.root = parent
-        self.SUDO_USER = ''
-        self.SUDO_UID = ''
-        self.SUDO_GID = ''
-        self.dirOut = ''
-        self.logFileName = ''
-        self.tapeDevice = ''
-        self.initBlockSize = ''
-        self.initBlockSizeDefault = ''
-        self.files = ''
-        self.logFile = ''
-        self.prefix = ''
-        self.extension = ''
-        self.fillBlocks = False
-        # Flag that is True if configuration file was read withourt errors, and False if not
-        self.configSuccess = True
         # Logging stuff
         self.logger = logging.getLogger()
         # Create a logging handler using a queue
         self.log_queue = queue.Queue(-1)
         self.queue_handler = QueueHandler(self.log_queue)
-        self.getConfiguration()
+        # Create tape instance
+        self.tape = Tape()
+        # Read configuration file
+        self.tape.getConfiguration()
+        # Build the GUI
         self.build_gui()
 
     def on_quit(self):
         """Quit tapeimgr"""
         os._exit(0)
-
-    def getConfiguration(self):
-        """read configuration file and set variables accordingly"""
-        if not os.path.isfile(self.configFile):
-            self.configSuccess = False
-
-        # Read config file to dictionary
-        try:
-            with io.open(self.configFile, 'r', encoding='utf-8') as f:
-                configDict = json.load(f)
-        except:
-            self.configSuccess = False
-        
-        if self.configSuccess:
-            # Update class variables
-            try:
-                self.SUDO_USER = configDict['SUDO_USER']
-                self.SUDO_UID = configDict['SUDO_UID']
-                self.SUDO_GID = configDict['SUDO_GID']
-                self.files = configDict['files']
-                self.logFileName = configDict['logFileName']
-                self.tapeDevice = configDict['tapeDevice']
-                self.initBlockSize = configDict['initBlockSize']
-                self.initBlockSizeDefault = self.initBlockSize
-                self.prefix = configDict['prefix']
-                self.extension = configDict['extension']
-                self.fillBlocks = bool(configDict['fillBlocks'])
-            except KeyError:
-                self.configSuccess = False
-
-            try:
-                # If executed as root, return normal user's home directory
-                self.dirOut = os.path.normpath('/home/' + self.SUDO_USER)
-            except TypeError:
-                # SUDO_USER doesn't exist if not executed as root
-                self.dirOut = os.path.expanduser("~")
 
     def on_submit(self):
         """fetch and validate entered input, and start processing"""
@@ -104,25 +55,12 @@ class tapeimgrGUI(tk.Frame):
         inputValidateFlag = True
 
         # Fetch entered values (strip any leading / trailing whitespace characters)
-        self.tapeDevice = self.tapeDevice_entry.get().strip()
-        self.initBlockSize = self.initBlockSize_entry.get().strip()
-        self.files = self.files_entry.get().strip()
-        self.prefix = self.prefix_entry.get().strip()
-        self.extension = self.extension_entry.get().strip()
-        self.fillBlocks = self.fBlocks.get()
-        self.logFile = os.path.join(self.dirOut, self.logFileName)
-
-        # Create tape instance
-        self.tape = Tape(self.dirOut,
-                         self.tapeDevice,
-                         self.initBlockSize,
-                         self.files,
-                         self.prefix,
-                         self.extension,
-                         self.fillBlocks,
-                         self.logFile,
-                         self.SUDO_UID,
-                         self.SUDO_GID)
+        self.tape.tapeDevice = self.tapeDevice_entry.get().strip()
+        self.tape.initBlockSize = self.initBlockSize_entry.get().strip()
+        self.tape.files = self.files_entry.get().strip()
+        self.tape.prefix = self.prefix_entry.get().strip()
+        self.tape.extension = self.extension_entry.get().strip()
+        self.tape.fillBlocks = self.fBlocks.get()
 
         # Validate input
         self.tape.validateInput()
@@ -130,12 +68,12 @@ class tapeimgrGUI(tk.Frame):
         # Show error message for any parameters that didn't pass validation
         if not self.tape.dirOutIsDirectory:
             inputValidateFlag = False
-            msg = ("Output directory doesn't exist:\n" + self.dirOut)
+            msg = ("Output directory doesn't exist:\n" + self.tape.dirOut)
             tkMessageBox.showerror("ERROR", msg)
 
         if not self.tape.dirOutIsWritable:
             inputValidateFlag = False
-            msg = ('Cannot write to directory ' + self.dirOut)
+            msg = ('Cannot write to directory ' + self.tape.dirOut)
             tkMessageBox.showerror("ERROR", msg)
 
         if not self.tape.deviceAccessibleFlag:
@@ -157,7 +95,7 @@ class tapeimgrGUI(tk.Frame):
         # Ask confirmation if output files exist already
         outDirConfirmFlag = True
         if self.tape.outputExistsFlag:
-            msg = ('writing to ' + self.dirOut + ' will overwrite existing files!\n'
+            msg = ('writing to ' + self.tape.dirOut + ' will overwrite existing files!\n'
                    'press OK to continue, otherwise press Cancel ')
             outDirConfirmFlag = tkMessageBox.askokcancel("Overwrite files?", msg)
 
@@ -171,7 +109,7 @@ class tapeimgrGUI(tk.Frame):
                 self.after(100, self.poll_log_queue)
             except OSError:
                 # Something went wrong while trying to write to lof file
-                msg = ('error trying to write log file to ' + self.logFile)
+                msg = ('error trying to write log file to ' + self.tape.logFile)
                 tkMessageBox.showerror("ERROR", msg)
                 successLogger = False
 
@@ -184,12 +122,11 @@ class tapeimgrGUI(tk.Frame):
                 t1 = threading.Thread(target=self.tape.processTape)
                 t1.start()
 
-
     def selectOutputDirectory(self, event=None):
         """Select output directory"""
-        dirInit = self.dirOut
-        self.dirOut = tkFileDialog.askdirectory(initialdir=dirInit)
-        self.outDirLabel['text'] = self.dirOut
+        dirInit = self.tape.dirOut
+        self.tape.dirOut = tkFileDialog.askdirectory(initialdir=dirInit)
+        self.outDirLabel['text'] = self.tape.dirOut
 
     def decreaseBlocksize(self):
         """Decrease value of initBlockSize"""
@@ -197,7 +134,7 @@ class tapeimgrGUI(tk.Frame):
             blockSizeOld = int(self.initBlockSize_entry.get().strip())
         except ValueError:
             # Reset if user manually entered something weird
-            blockSizeOld = int(self.initBlockSizeDefault)
+            blockSizeOld = int(self.tape.initBlockSizeDefault)
         blockSizeNew = max(blockSizeOld - 512, 512)
         self.initBlockSize_entry.delete(0, tk.END)
         self.initBlockSize_entry.insert(tk.END, str(blockSizeNew))
@@ -208,7 +145,7 @@ class tapeimgrGUI(tk.Frame):
             blockSizeOld = int(self.initBlockSize_entry.get().strip())
         except ValueError:
             # Reset if user manually entered something weird
-            blockSizeOld = int(self.initBlockSizeDefault)
+            blockSizeOld = int(self.tape.initBlockSizeDefault)
         blockSizeNew = blockSizeOld + 512
         self.initBlockSize_entry.delete(0, tk.END)
         self.initBlockSize_entry.insert(tk.END, str(blockSizeNew))
@@ -232,7 +169,7 @@ class tapeimgrGUI(tk.Frame):
                                             command=self.selectOutputDirectory,
                                             width=20)
         self.outDirButton_entry.grid(column=0, row=3, sticky='w')
-        self.outDirLabel = tk.Label(self, text=self.dirOut)
+        self.outDirLabel = tk.Label(self, text=self.tape.dirOut)
         self.outDirLabel.update()
         self.outDirLabel.grid(column=1, row=3, sticky='w')
 
@@ -242,14 +179,14 @@ class tapeimgrGUI(tk.Frame):
         tk.Label(self, text='Tape Device').grid(column=0, row=6, sticky='w')
         self.tapeDevice_entry = tk.Entry(self, width=20)
         self.tapeDevice_entry['background'] = 'white'
-        self.tapeDevice_entry.insert(tk.END, self.tapeDevice)
+        self.tapeDevice_entry.insert(tk.END, self.tape.tapeDevice)
         self.tapeDevice_entry.grid(column=1, row=6, sticky='w')
 
         # Initial Block Size
         tk.Label(self, text='Initial Block Size').grid(column=0, row=7, sticky='w')
         self.initBlockSize_entry = tk.Entry(self, width=20)
         self.initBlockSize_entry['background'] = 'white'
-        self.initBlockSize_entry.insert(tk.END, self.initBlockSize)
+        self.initBlockSize_entry.insert(tk.END, self.tape.initBlockSize)
         self.initBlockSize_entry.grid(column=1, row=7, sticky='w')
         self.decreaseBSButton = tk.Button(self, text='-', command=self.decreaseBlocksize, width=1)
         self.decreaseBSButton.grid(column=2, row=7, sticky='e')
@@ -266,20 +203,20 @@ class tapeimgrGUI(tk.Frame):
         tk.Label(self, text='Prefix').grid(column=0, row=9, sticky='w')
         self.prefix_entry = tk.Entry(self, width=20)
         self.prefix_entry['background'] = 'white'
-        self.prefix_entry.insert(tk.END, self.prefix)
+        self.prefix_entry.insert(tk.END, self.tape.prefix)
         self.prefix_entry.grid(column=1, row=9, sticky='w')
 
         # Extension
         tk.Label(self, text='Extension').grid(column=0, row=10, sticky='w')
         self.extension_entry = tk.Entry(self, width=20)
         self.extension_entry['background'] = 'white'
-        self.extension_entry.insert(tk.END, self.extension)
+        self.extension_entry.insert(tk.END, self.tape.extension)
         self.extension_entry.grid(column=1, row=10, sticky='w')
 
         # Fill failed blocks
         tk.Label(self, text='Fill failed blocks').grid(column=0, row=11, sticky='w')
         self.fBlocks = tk.IntVar()
-        self.fillblocks_entry = tk.Checkbutton(self, variable=self.fBlocks)
+        self.fillblocks_entry = tk.Checkbutton(self, variable=self.tape.fillBlocks)
         self.fillblocks_entry.grid(column=1, row=11, sticky='w')
 
         ttk.Separator(self, orient='horizontal').grid(column=0, row=12, columnspan=4, sticky='ew')
@@ -315,7 +252,7 @@ class tapeimgrGUI(tk.Frame):
             child.grid_configure(padx=5, pady=5)
 
         # Display message and exit if config file could not be read
-        if not self.configSuccess:
+        if not self.tape.configSuccess:
             msg = ("Error reading configuration file! \n" +
                    "Run 'sudo tapeimgr-config' to fix this.")
             errorExit(msg)
@@ -324,7 +261,7 @@ class tapeimgrGUI(tk.Frame):
         """Set up logger configuration"""
 
         # Basic configuration
-        logging.basicConfig(filename=self.logFile,
+        logging.basicConfig(filename=self.tape.logFile,
                             level=logging.INFO,
                             format='%(asctime)s - %(levelname)s - %(message)s')
 
