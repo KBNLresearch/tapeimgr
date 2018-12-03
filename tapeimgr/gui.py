@@ -101,9 +101,6 @@ class tapeimgrGUI(tk.Frame):
 
         if inputValidateFlag and outDirConfirmFlag:
 
-            # Log file
-            self.tape.logFile = os.path.join(self.tape.dirOut, self.tape.logFileName)
-
             # Start logger
             successLogger = True
             try:

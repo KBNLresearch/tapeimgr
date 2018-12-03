@@ -86,6 +86,7 @@ class Tape:
                 # SUDO_USER doesn't exist if not executed as root
                 self.dirOut = os.path.expanduser("~")
 
+
     def validateInput(self):
         """Validate and pre-process input"""
 
@@ -140,6 +141,9 @@ class Tape:
 
         # Convert fillBlocks to Boolean
         self.fillBlocks = bool(self.fillBlocks)
+        
+        # Log file
+        self.logFile = os.path.join(self.dirOut, self.logFileName)
 
     def processTape(self):
         """Process a tape"""

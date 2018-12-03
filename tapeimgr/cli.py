@@ -33,25 +33,16 @@ class tapeimgrCLI:
         self.parser = argparse.ArgumentParser(description='Read contents of tape. Each file'
                                               ' on the tape is stored as a separate file.',
                                               formatter_class=formatter)
-        self.SUDO_USER = ''
-        self.SUDO_UID = ''
-        self.SUDO_GID = ''
-        self.dirOut = ''
-        self.logFileName = ''
-        self.tapeDevice = ''
-        self.initBlockSize = ''
-        self.initBlockSizeDefault = ''
-        self.files = ''
-        self.logFile = ''
-        self.prefix = ''
-        self.extension = ''
-        self.fillBlocks = False
-        # Flag that is True if configuration file was read withourt errors, and False if not
-        self.configSuccess = True
+
         # Logging stuff
         self.logger = logging.getLogger()
         # Add stream handler that directs logging output to stdout
         self.consoleHandler = logging.StreamHandler(sys.stdout)
+        # Create tape instance
+        self.tape = Tape()
+        # Read configuration file
+        self.tape.getConfiguration()
+
 
     def parseCommandLine(self):
         """Parse command line"""
@@ -101,57 +92,21 @@ class tapeimgrCLI:
 
         # Parse arguments
         args = self.parser.parse_args()
-        self.dirOut = args.dirOut
-        self.fillBlocks = args.fillBlocks
-        self.tapeDevice = args.device
-        self.initBlockSize = args.size
-        self.files = args.files
-        self.prefix = args.pref
-        self.extension = args.ext
-
-    def getConfiguration(self):
-        """read configuration file and set variables accordingly"""
-        if not os.path.isfile(self.configFile):
-            self.configSuccess = False
-
-        # Read config file to dictionary
-        try:
-            with io.open(self.configFile, 'r', encoding='utf-8') as f:
-                configDict = json.load(f)
-        except:
-            self.configSuccess = False
-        
-        if self.configSuccess:
-            # Update class variables
-            try:
-                self.SUDO_USER = configDict['SUDO_USER']
-                self.SUDO_UID = configDict['SUDO_UID']
-                self.SUDO_GID = configDict['SUDO_GID']
-                self.files = configDict['files']
-                self.logFileName = configDict['logFileName']
-                self.tapeDevice = configDict['tapeDevice']
-                self.initBlockSize = configDict['initBlockSize']
-                self.initBlockSizeDefault = self.initBlockSize
-                self.prefix = configDict['prefix']
-                self.extension = configDict['extension']
-                self.fillBlocks = bool(configDict['fillBlocks'])
-            except KeyError:
-                self.configSuccess = False
-
-            try:
-                # If executed as root, return normal user's home directory
-                self.dirOut = os.path.normpath('/home/' + self.SUDO_USER)
-            except TypeError:
-                # SUDO_USER doesn't exist if not executed as root
-                self.dirOut = os.path.expanduser("~")
+        self.tape.dirOut = args.dirOut
+        self.tape.fillBlocks = args.fillBlocks
+        self.tape.tapeDevice = args.device
+        self.tape.initBlockSize = args.size
+        self.tape.files = args.files
+        self.tape.prefix = args.pref
+        self.tape.extension = args.ext
 
     def process(self):
         """fetch and validate entered input, and start processing"""
 
         # Read configuration file
-        self.getConfiguration()
+        self.tape.getConfiguration()
 
-        if not self.configSuccess:
+        if not self.tape.configSuccess:
             msg = ("Error reading configuration file! \n" +
                    "Run 'sudo tapeimgr-config' to fix this.")
             errorExit(msg)
