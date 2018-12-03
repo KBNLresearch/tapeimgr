@@ -168,12 +168,12 @@ def main():
 
     if packageDir.startswith(homeDir):
         # Local install: store everything in user's home dir
-        globalInstall = True
+        globalInstall = False
         configRootDir = os.path.join(homeDir, '.config/')
         applicationsDir = os.path.join(homeDir, '.local/share/applications/')
     else:
         # Global install
-        globalInstall = False
+        globalInstall = True
         configRootDir = os.path.normpath('/etc/')
         applicationsDir = os.path.normpath('/usr/share/applications')
 
