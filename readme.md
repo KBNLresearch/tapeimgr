@@ -73,11 +73,7 @@ In the instructions that follow below, it is assumed that you have a functioning
 
 ## GUI operation
 
-You can start *tapeimgr* from the OS's main menu (in Ubuntu 18.04 the *tapeimgr* item is located under *System Tools*), or by clicking the *tapeimgr* shortcut on the desktop. Depending on your distro, you might get an "Untrusted application launcher" warning the first time you activate the shortcut. You can get rid of this by clicking on "Mark as Trusted". As *tapeimgr* is launched as root (this is needed to access the tape device), you will get a prompt that asks for your password:
-
-![](./img/tapeimgr-auth.png)
-
-After authenticating the main *tapeimgr* window appears:
+You can start *tapeimgr* from the OS's main menu (in Ubuntu 18.04 the *tapeimgr* item is located under *System Tools*), or by clicking the *tapeimgr* shortcut on the desktop. Depending on your distro, you might get an "Untrusted application launcher" warning the first time you activate the shortcut. You can get rid of this by clicking on "Mark as Trusted". On startup the main *tapeimgr* window appears:
 
 ![](./img/tapeimgr-1.png)
 
@@ -110,15 +106,15 @@ If needed you can use the folowing options to customize the behaviour of *tapeim
 
 ## Command-line operation
 
-It is also possible to invoke *tapeimgr* with command-line arguments. The general syntax is (make sure to run *tapeimgr* as root: if you don't it won't be able to access the tape device):
+It is also possible to invoke *tapeimgr* with command-line arguments. The general syntax is:
 
-    sudo tapeimgr [-h] [--version] [--fill] [--device DEVICE] [--blocksize SIZE]
+    tapeimgr [-h] [--version] [--fill] [--device DEVICE] [--blocksize SIZE]
                     [--files FILES] [--prefix PREF] [--extension EXT]
                     dirOut
 
 Here `dirOut` is the output directory. So, the command-line equivalent of the first GUI example is:
 
-    sudo tapeimgr /home/bcadmin/test/
+    tapeimgr /home/bcadmin/test/
 
 This will extract the contents of the tape to directory */home/bcadmin/test/*, using the default options.
 
