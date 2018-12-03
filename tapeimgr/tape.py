@@ -35,9 +35,6 @@ class Tape:
         self.filesIsValid = False
         # Miscellaneous attributes
         self.configFile = os.path.normpath('/etc/tapeimgr/tapeimgr.json')
-        self.SUDO_USER = ''
-        self.SUDO_UID = ''
-        self.SUDO_GID = ''
         self.logFile = ''
         self.logFileName = ''
         self.initBlockSizeDefault = ''
@@ -65,9 +62,6 @@ class Tape:
         if self.configSuccess:
             # Update class variables
             try:
-                self.SUDO_USER = configDict['SUDO_USER']
-                self.SUDO_UID = configDict['SUDO_UID']
-                self.SUDO_GID = configDict['SUDO_GID']
                 self.files = configDict['files']
                 self.logFileName = configDict['logFileName']
                 self.tapeDevice = configDict['tapeDevice']
@@ -79,13 +73,8 @@ class Tape:
             except KeyError:
                 self.configSuccess = False
 
-            try:
-                # If executed as root, return normal user's home directory
-                self.dirOut = os.path.normpath('/home/' + self.SUDO_USER)
-            except TypeError:
-                # SUDO_USER doesn't exist if not executed as root
-                self.dirOut = os.path.expanduser("~")
-
+            # Use user home directory as initial value of dirOut
+            self.dirOut = os.path.expanduser("~")
 
     def validateInput(self):
         """Validate and pre-process input"""
@@ -209,14 +198,6 @@ class Tape:
         checksumFile = os.path.join(self.dirOut, "checksums.sha512")
         shared.checksumDirectory(self.dirOut, self.extension, checksumFile)
 
-        # Change owner to user (since script is executed as root)
-        chOwnSuccess = shared.changeOwner(checksumFile,
-                                          int(self.SUDO_UID),
-                                          int(self.SUDO_GID))
-
-        if not chOwnSuccess:
-            logging.warning('Could not change owner settings for file ' + checksumFile)
-
         # Rewind and eject the tape
         logging.info('*** Rewinding tape ***')
 
@@ -241,14 +222,6 @@ class Tape:
         else:
             logging.error('One or more errors occurred while processing tape, \
             check log file for details')
-
-        # Change owner of log file to user (since script is executed as root)
-        chOwnSuccess = shared.changeOwner(self.logFile,
-                                          int(self.SUDO_UID),
-                                          int(self.SUDO_GID))
-
-        if not chOwnSuccess:
-            logging.warning('Could not change owner settings for file ' + self.logFile)
 
         # Wait 2 seconds to avoid race condition
         time.sleep(2)
@@ -281,14 +254,6 @@ class Tape:
                 args.append('conv=noerror,sync')
 
             ddStatus, ddOut, ddErr = shared.launchSubProcess(args)
-
-            # Change owner of extracted file to user (since script is executed as root)
-            chOwnSuccess = shared.changeOwner(ofName,
-                                              int(self.SUDO_UID),
-                                              int(self.SUDO_GID))
-
-            if not chOwnSuccess:
-                logging.warning('Could not change owner settings for file ' + ofName)
 
             if ddStatus != 0:
                 self.successFlag = False
