@@ -254,7 +254,7 @@ class tapeimgrGUI(tk.Frame):
         # Display message and exit if config file could not be read
         if not self.tape.configSuccess:
             msg = ("Error reading configuration file! \n" +
-                   "Run 'sudo tapeimgr-config' to fix this.")
+                   "Run '(sudo) tapeimgr-config' to fix this.")
             errorExit(msg)
 
     def setupLogger(self):

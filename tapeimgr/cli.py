@@ -105,7 +105,7 @@ class tapeimgrCLI:
 
         if not self.tape.configSuccess:
             msg = ("Error reading configuration file! \n" +
-                   "Run 'sudo tapeimgr-config' to fix this.")
+                   "Run '(sudo) tapeimgr-config' to fix this.")
             errorExit(msg)
 
         # Parse command line arguments

@@ -19,7 +19,7 @@ class Tape:
         """initialise Tape class instance"""
 
         # Input collected by GUI / CLI
-        self.dirOut = ''
+        self.dirOut = os.path.expanduser("~")
         self.tapeDevice = ''
         self.initBlockSize = ''
         self.files = ''
@@ -33,8 +33,14 @@ class Tape:
         self.dirOutIsWritable = False
         self.blockSizeIsValid = False
         self.filesIsValid = False
+        # Config file location, depends on package directory
+        packageDir = os.path.dirname(os.path.abspath(__file__))
+        homeDir = os.path.normpath(os.path.expanduser("~"))
+        if packageDir.startswith(homeDir):
+            self.configFile = os.path.join(homeDir, '.config/tapeimgr/tapeimgr.json')
+        else:
+            self.configFile = os.path.normpath('/etc/tapeimgr/tapeimgr.json')
         # Miscellaneous attributes
-        self.configFile = os.path.normpath('/etc/tapeimgr/tapeimgr.json')
         self.logFile = ''
         self.logFileName = ''
         self.checksumFileName = ''
@@ -74,9 +80,7 @@ class Tape:
                 self.fillBlocks = bool(configDict['fillBlocks'])
             except KeyError:
                 self.configSuccess = False
-
-            # Use user home directory as initial value of dirOut
-            self.dirOut = os.path.expanduser("~")
+            
 
     def validateInput(self):
         """Validate and pre-process input"""
