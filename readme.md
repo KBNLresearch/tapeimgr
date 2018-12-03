@@ -20,14 +20,22 @@ At this stage *tapeimgr* has only had limited testing with a small number of DDS
 
         sudo apt-get install python3-tk
 
-- **dd** and **mt** (but these are available by default on all Linux platforms) activated
-
-- The [**polkit**](https://www.freedesktop.org/wiki/Software/polkit/) toolkit, which is used to launch *tapeimgr* as root. Note that many Linux distros (e.g.Ubuntu, Linux Mint) have **polkit** installed by default.  
+- **dd** and **mt** (but these are available by default on all Linux platforms)
 
 
 ## Installation
 
-First install *tapeimgr* with the following command (note that user installs currently don' t work!):
+### Preparation: add default user to tape group
+
+By default on Linux special permissions are needed to access tape devices. So before proceeding use the command below (replacing `$USER` with the name of the user who will be using tapeimgr):
+
+    sudo adduser $USER tape
+
+The user is now added to the 'tape' [system group](https://wiki.debian.org/SystemGroups). Now log out and then log in again for the changes to take effect.  
+
+### Global install
+
+For a global (all-users) installation run the following command:
 
     sudo pip3 install tapeimgr
 
@@ -38,10 +46,25 @@ Then run:
 If all goes well this should result in the following output:
 
     INFO: writing configuration file /etc/tapeimgr/tapeimgr.json
-    INFO: creating pkexec launcher /usr/local/bin/tapeimgr-pkexec
-    INFO: creating policy file /usr/share/polkit-1/actions/com.ubuntu.pkexec.tapeimgr.policy
-    INFO: creating desktop file /home/bcadmin/Desktop/tapeimgr.desktop
+    INFO: creating desktop file /home/johan/Desktop/tapeimgr.desktop
     INFO: creating desktop file /usr/share/applications/tapeimgr.desktop
+    INFO: tapeimgr configuration completed successfully!
+
+### User install
+
+Use the following command for a single-user installation:
+
+    pip3 --user install tapeimgr
+
+Then run:
+
+    ~/.local/bin/tapeimgr-config
+
+Result:
+
+    INFO: writing configuration file /home/johan/.config/tapeimgr/tapeimgr.json
+    INFO: creating desktop file /home/johan/Desktop/tapeimgr.desktop
+    INFO: creating desktop file /home/johan/.local/share/applications/tapeimgr.desktop
     INFO: tapeimgr configuration completed successfully!
 
 *Tapeimgr* is now ready to roll!
