@@ -8,9 +8,6 @@ Research department,  KB / National Library of the Netherlands
 """
 
 import sys
-import os
-import io
-import json
 import logging
 import argparse
 from .tape import Tape
@@ -57,38 +54,38 @@ class tapeimgrCLI:
         self.parser.add_argument('--fill', '-f',
                                  action='store_true',
                                  dest='fillBlocks',
-                                 default=self.fillBlocks,
+                                 default=self.tape.fillBlocks,
                                  help='fill blocks that give read errors with null bytes')
         self.parser.add_argument('--device', '-d',
                                  action='store',
                                  type=str,
                                  help='non-rewind tape device',
                                  dest='device',
-                                 default=self.tapeDevice)
+                                 default=self.tape.tapeDevice)
         self.parser.add_argument('--blocksize', '-b',
                                  action='store',
                                  type=str,
                                  help='initial block size (must be a multiple of 512)',
                                  dest='size',
-                                 default=self.initBlockSize)
+                                 default=self.tape.initBlockSize)
         self.parser.add_argument('--files', '-s',
                                  action='store',
                                  type=str,
                                  help='comma-separated list of files to extract',
                                  dest='files',
-                                 default=self.files)
+                                 default=self.tape.files)
         self.parser.add_argument('--prefix', '-p',
                                  action='store',
                                  type=str,
                                  help='output prefix',
                                  dest='pref',
-                                 default=self.prefix)
+                                 default=self.tape.prefix)
         self.parser.add_argument('--extension', '-e',
                                  action='store',
                                  type=str,
                                  help='output file extension',
                                  dest='ext',
-                                 default=self.extension)
+                                 default=self.tape.extension)
 
         # Parse arguments
         args = self.parser.parse_args()
@@ -114,31 +111,16 @@ class tapeimgrCLI:
         # Parse command line arguments
         self.parseCommandLine()
 
-        # Set logFile
-        self.logFile = os.path.join(self.dirOut, self.logFileName)
-
-        # Create tape instance
-        self.tape = Tape(self.dirOut,
-                         self.tapeDevice,
-                         self.initBlockSize,
-                         self.files,
-                         self.prefix,
-                         self.extension,
-                         self.fillBlocks,
-                         self.logFile,
-                         self.SUDO_UID,
-                         self.SUDO_GID)
-
         # Validate input
         self.tape.validateInput()
 
         # Show error message and exit if any parameters didn't pass validation
         if not self.tape.dirOutIsDirectory:
-            msg = ("Output directory '" + self.dirOut + "' doesn't exist!")
+            msg = ("Output directory '" + self.tape.dirOut + "' doesn't exist!")
             errorExit(msg)
 
         if not self.tape.dirOutIsWritable:
-            msg = ("Cannot write to directory '" + self.dirOut + "'!")
+            msg = ("Cannot write to directory '" + self.tape.dirOut + "'!")
             errorExit(msg)
 
         if not self.tape.deviceAccessibleFlag:
@@ -146,7 +128,7 @@ class tapeimgrCLI:
             errorExit(msg)
 
         if not self.tape.blockSizeIsValid:
-            msg = ("--blocksize '" + str(self.initBlockSize) + "' not valid!")
+            msg = ("--blocksize '" + str(self.tape.initBlockSize) + "' not valid!")
             errorExit(msg)
 
         if not self.tape.filesIsValid:
@@ -156,7 +138,7 @@ class tapeimgrCLI:
 
         # Ask confirmation if output files exist already
         if self.tape.outputExistsFlag:
-            msg = ('WARNING: writing to ' + self.dirOut + ' will overwrite existing files!\n'
+            msg = ('WARNING: writing to ' + self.tape.dirOut + ' will overwrite existing files!\n'
                    'do you really want to proceed? (enter Y to proceed, or N to cancel): ')
             continueResponse = input(msg)
 
@@ -175,7 +157,7 @@ class tapeimgrCLI:
         """Set up logger configuration"""
 
         # Basic configuration
-        logging.basicConfig(filename=self.logFile,
+        logging.basicConfig(filename=self.tape.logFile,
                             level=logging.INFO,
                             format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -191,10 +173,12 @@ def printInfo(msg):
     msgString = ('INFO: ' + msg + '\n')
     sys.stderr.write(msgString)
 
+
 def printWarning(msg):
     """Print warning to stderr"""
     msgString = ('WARNING: ' + msg + '\n')
     sys.stderr.write(msgString)
+
 
 def errorExit(msg):
     """Print error to stderr and exit"""

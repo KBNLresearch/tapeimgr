@@ -141,7 +141,7 @@ class Tape:
 
         # Convert fillBlocks to Boolean
         self.fillBlocks = bool(self.fillBlocks)
-        
+
         # Log file
         self.logFile = os.path.join(self.dirOut, self.logFileName)
 
@@ -244,8 +244,8 @@ class Tape:
 
         # Change owner of log file to user (since script is executed as root)
         chOwnSuccess = shared.changeOwner(self.logFile,
-                                       int(self.SUDO_UID),
-                                       int(self.SUDO_GID))
+                                          int(self.SUDO_UID),
+                                          int(self.SUDO_GID))
 
         if not chOwnSuccess:
             logging.warning('Could not change owner settings for file ' + self.logFile)
