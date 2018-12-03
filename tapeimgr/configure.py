@@ -7,7 +7,6 @@ import io
 import json
 import sys
 import argparse
-from shutil import copyfile
 
 
 def parseCommandLine(parser):
@@ -34,22 +33,12 @@ def infoMessage(msg):
     msgString = ('INFO: ' + msg + '\n')
     sys.stderr.write(msgString)
 
-def writeConfigFile(sudoUser, sudoUID, sudoGID, removeFlag):
+def writeConfigFile(configRootDir, removeFlag):
     """Create configuration file"""
 
-    # Exit if script nor tun as root
-    if sudoUID is None or sudoGID is None:
-        msg = 'this script must be run as root'
-        errorExit(msg)
+    # Create configuration directory under configRootDir
 
-    # Create configuration directory under /etc/
-    etcDir = os.path.normpath('/etc/')
-
-    if not os.access(etcDir, os.W_OK | os.X_OK):
-        msg = 'cannot write to ' + etcDir
-        errorExit(msg)
-
-    configDir = os.path.join(etcDir, 'tapeimgr')
+    configDir = os.path.join(configRootDir, 'tapeimgr')
 
     if not removeFlag:
         if not os.path.isdir(configDir):
@@ -60,10 +49,8 @@ def writeConfigFile(sudoUser, sudoUID, sudoGID, removeFlag):
 
     # Dictionary with items in configuration file
     configSettings = {}
-    configSettings['SUDO_USER'] = sudoUser
-    configSettings['SUDO_UID'] = sudoUID
-    configSettings['SUDO_GID'] = sudoGID
     configSettings['files'] = ''
+    configSettings['checksumFileName'] = 'checksums.sha512'
     configSettings['logFileName'] = 'tapeimgr.log'
     configSettings['tapeDevice'] = '/dev/nst0'
     configSettings['initBlockSize'] = '512'
@@ -84,26 +71,17 @@ def writeConfigFile(sudoUser, sudoUID, sudoGID, removeFlag):
             infoMessage('removing configuration directory ' + configDir)
             os.rmdir(configDir)
 
-def writeDesktopFiles(packageDir, sudoUID, sudoGID, removeFlag):
+def writeDesktopFiles(packageDir, applicationsDir, desktopDir, removeFlag):
     """Creates desktop files in /usr/share/applications and on desktop"""
+
+    # Needed to change file permissions
+    sudoUID = os.environ.get('SUDO_UID')
+    sudoGID = os.environ.get('SUDO_GID')
 
     # Locate icon file in package
     iconFile = os.path.join(packageDir, 'icons', 'tapeimgr.png')
     if not os.path.isfile(iconFile):
         msg = 'cannot find icon file'
-        errorExit(msg)
-
-    # Locate /etc, applications and desktop directories
-    desktopDir = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop')
-    applicationsDir = os.path.normpath('/usr/share/applications')
-
-    # Check if directories are writable
-    if not os.access(desktopDir, os.W_OK | os.X_OK):
-        msg = 'cannot write to ' + desktopDir
-        errorExit(msg)
-
-    if not os.access(applicationsDir, os.W_OK | os.X_OK):
-        msg = 'cannot write to ' + applicationsDir
         errorExit(msg)
 
     fDesktop = os.path.join(desktopDir, 'tapeimgr.desktop')
@@ -116,7 +94,7 @@ def writeDesktopFiles(packageDir, sudoUID, sudoGID, removeFlag):
     desktopList.append('Encoding=UTF-8')
     desktopList.append('Name=tapeimgr')
     desktopList.append('Comment=Simple tape imaging and extraction tool')
-    desktopList.append('Exec=tapeimgr-pkexec')
+    desktopList.append('Exec=tapeimgr')
     desktopList.append('Icon=' + iconFile)
     desktopList.append('Terminal=false')
     desktopList.append('Categories=Utility;System;GTK')
@@ -128,8 +106,12 @@ def writeDesktopFiles(packageDir, sudoUID, sudoGID, removeFlag):
             with io.open(fDesktop, 'w', encoding='utf-8') as fD:
                 for line in desktopList:
                     fD.write(line + '\n')
-            # Change owner to user (since script is executed as root)
-            os.chown(fDesktop, int(sudoUID), int(sudoGID))
+            # Change owner to user if script is executed as root
+            try:
+                os.chown(fDesktop, int(sudoUID), int(sudoGID))
+            except TypeError:
+                # Script not executed as root
+                pass
         except:
             msg = 'Failed to create ' + fDesktop
             errorExit(msg)
@@ -151,89 +133,13 @@ def writeDesktopFiles(packageDir, sudoUID, sudoGID, removeFlag):
             infoMessage('removing desktop file ' + fApplications)
             os.remove(fApplications)
 
-
-def  writePKPolicyFile(packageDir, removeFlag):
-    """Creates policy file in /usr/share/polkit-1/actions which is required to
-    launch tapeimgr with pkexec"""
-
-    policyFileName = 'com.ubuntu.pkexec.tapeimgr.policy'
-
-    policyFileIn = os.path.join(packageDir, 'pkexec', policyFileName)
-    if not os.path.isfile(policyFileIn):
-        msg = 'cannot find policy file'
-        errorExit(msg)
-
-    # Locate polkit actions dir and check if we can write there
-    actionsDir = os.path.normpath('/usr/share/polkit-1/actions')
-    if not os.path.isdir(actionsDir):
-        msg = 'cannot find actions dir'
-        errorExit(msg)
-
-    # Construct path to output policy file
-    policyFileOut = os.path.join(actionsDir, policyFileName)
-
-    # Copy policy file to actions dir
-    if not removeFlag:
-        try:
-            infoMessage('creating policy file ' + policyFileOut)
-            copyfile(policyFileIn, policyFileOut)
-        except IOError:
-            msg = 'could not copy policy file to ' + policyFileOut
-            errorExit(msg)
-    else:
-        if os.path.isfile(policyFileOut):
-            infoMessage('removing policy file ' + policyFileOut)
-            os.remove(policyFileOut)
-
-def writePKLauncher(packageDir, removeFlag):
-    """Creates launcher script in /usr/local/bin which is use by pkexec to
-    launch tapeimgr"""
-
-    pkExecLauncherFileName = 'tapeimgr-pkexec'
-
-    pkExecLauncherIn = os.path.join(packageDir, 'pkexec', pkExecLauncherFileName)
-
-    if not os.path.isfile(pkExecLauncherIn):
-        msg = 'cannot find pkExec launcher file'
-        errorExit(msg)
-
-    # Locate usr/local/bin dir and check if we can write there
-    binDir = os.path.normpath('/usr/local/bin')
-    if not os.path.isdir(binDir):
-        msg = 'cannot find ' + binDir
-        errorExit(msg)
-
-    if not os.access(binDir, os.W_OK | os.X_OK):
-        msg = 'cannot write to ' + binDir
-        errorExit(msg)
-
-    # Construct path to output pk launcher
-    pkExecLauncherOut = os.path.join(binDir, pkExecLauncherFileName)
-
-    # Copy pk launcher to bin dir and make it executable
-    if not removeFlag:
-        try:
-            infoMessage('creating pkexec launcher ' + pkExecLauncherOut)
-            copyfile(pkExecLauncherIn, pkExecLauncherOut)
-            os.chmod(pkExecLauncherOut, 0o755)
-        except IOError:
-            msg = 'could not copy pkexec launcher to ' + pkExecLauncherOut
-            errorExit(msg)
-    else:
-        if os.path.isfile(pkExecLauncherOut):
-            infoMessage('removing pkexec launcher file ' + pkExecLauncherOut)
-            os.remove(pkExecLauncherOut)
-
-
 def main():
     """
     Creates the following items:
-    - configuration directory tapeimgr in /etc/
-    - configuration file in /etc/tapeimgr
-    - pkexec policy file in /usr/share/polkit-1/actions
-    - pkexec launcher script in /usr/local/bin
-    - desktop file in /usr/share/applications
-    - desktop file on user's desktop
+    - configuration directory tapeimgr in ~/.config/ or /etc/
+    - configuration file in configuration directory
+    - desktop file in  ~/.local/share/applications/ or /usr/share/applications
+    - desktop file in ~/Desktop
     If the --remove / -r switch is given the above items
     are removed (if they exist)
     """
@@ -243,18 +149,58 @@ def main():
     args = parseCommandLine(parser)
     removeFlag = args.removeFlag
 
-    # Package dir
-    packageDir = os.path.dirname(os.path.abspath(__file__))
-
     # Get evironment variables
     sudoUser = os.environ.get('SUDO_USER')
-    sudoUID = os.environ.get('SUDO_UID')
-    sudoGID = os.environ.get('SUDO_GID')
 
-    writeConfigFile(sudoUser, sudoUID, sudoGID, removeFlag)
-    writePKLauncher(packageDir, removeFlag)
-    writePKPolicyFile(packageDir, removeFlag)
-    writeDesktopFiles(packageDir, sudoUID, sudoGID, removeFlag)
+    # Package directory
+    packageDir = os.path.dirname(os.path.abspath(__file__))
+
+    # Current home directory
+    try:
+        # If executed as root, return normal user's home directory
+        homeDir = os.path.normpath('/home/'+ sudoUser)
+    except TypeError:
+        #sudoUser doesn't exist if not executed as root
+        homeDir = os.path.normpath(os.path.expanduser("~"))
+
+    # Get locations of configRootDir and applicationsDir,
+    # depending of install type (which is inferred from packageDir)
+
+    if packageDir.startswith(homeDir):
+        # Local install: store everything in user's home dir
+        configRootDir = os.path.join(homeDir, '.config/')
+        applicationsDir = os.path.join(homeDir, '.local/share/applications/')
+    else:
+        # Global install
+        configRootDir = os.path.normpath('/etc/')
+        applicationsDir = os.path.normpath('/usr/share/applications')
+
+    # Desktop directory
+    desktopDir = os.path.join(homeDir, 'Desktop/')
+
+    # Check if these directories exist and that they are writable
+    if not os.access(configRootDir, os.W_OK | os.X_OK):
+        msg = 'cannot write to ' + configRootDir
+        errorExit(msg)
+
+    if not os.access(applicationsDir, os.W_OK | os.X_OK):
+        msg = 'cannot write to ' + applicationsDir
+        errorExit(msg)
+
+    if not os.access(desktopDir, os.W_OK | os.X_OK):
+        msg = 'cannot write to ' + desktopDir
+        errorExit(msg)
+
+    ## TEST
+    print('packageDir', packageDir)
+    print('homeDir', homeDir)
+    print('configRootDir', configRootDir)
+    print('applicationsDir', applicationsDir)
+    print('desktopDir', desktopDir)
+    ## TEST
+
+    #writeConfigFile(configRootDir, removeFlag)
+    #writeDesktopFiles(packageDir, applicationsDir, desktopDir, removeFlag)
     infoMessage('tapeimgr configuration completed successfully!')
 
 

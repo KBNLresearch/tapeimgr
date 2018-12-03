@@ -37,6 +37,7 @@ class Tape:
         self.configFile = os.path.normpath('/etc/tapeimgr/tapeimgr.json')
         self.logFile = ''
         self.logFileName = ''
+        self.checksumFileName = ''
         self.initBlockSizeDefault = ''
         self.tapeDeviceIOError = False
         self.successFlag = True
@@ -64,6 +65,7 @@ class Tape:
             try:
                 self.files = configDict['files']
                 self.logFileName = configDict['logFileName']
+                self.checksumFileName = configDict['checksumFileName']
                 self.tapeDevice = configDict['tapeDevice']
                 self.initBlockSize = configDict['initBlockSize']
                 self.initBlockSizeDefault = self.initBlockSize
@@ -195,7 +197,7 @@ class Tape:
 
         # Create checksum file
         logging.info('*** Creating checksum file ***')
-        checksumFile = os.path.join(self.dirOut, "checksums.sha512")
+        checksumFile = os.path.join(self.dirOut, self.checksumFileName)
         shared.checksumDirectory(self.dirOut, self.extension, checksumFile)
 
         # Rewind and eject the tape
