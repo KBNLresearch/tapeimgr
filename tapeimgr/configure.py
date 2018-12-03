@@ -168,17 +168,24 @@ def main():
 
     if packageDir.startswith(homeDir):
         # Local install: store everything in user's home dir
+        globalInstall = True
         configRootDir = os.path.join(homeDir, '.config/')
         applicationsDir = os.path.join(homeDir, '.local/share/applications/')
     else:
         # Global install
+        globalInstall = False
         configRootDir = os.path.normpath('/etc/')
         applicationsDir = os.path.normpath('/usr/share/applications')
 
     # Desktop directory
     desktopDir = os.path.join(homeDir, 'Desktop/')
 
-    # Check if these directories exist and that they are writable
+    # For a global installation this script must be run as root
+    if globalInstall and sudoUser is None:
+        msg = 'this script must be run as root for a global installation'
+        errorExit(msg)
+
+    # Check if directories exist and that they are writable
     if not os.access(configRootDir, os.W_OK | os.X_OK):
         msg = 'cannot write to ' + configRootDir
         errorExit(msg)
@@ -191,16 +198,8 @@ def main():
         msg = 'cannot write to ' + desktopDir
         errorExit(msg)
 
-    ## TEST
-    print('packageDir', packageDir)
-    print('homeDir', homeDir)
-    print('configRootDir', configRootDir)
-    print('applicationsDir', applicationsDir)
-    print('desktopDir', desktopDir)
-    ## TEST
-
-    #writeConfigFile(configRootDir, removeFlag)
-    #writeDesktopFiles(packageDir, applicationsDir, desktopDir, removeFlag)
+    writeConfigFile(configRootDir, removeFlag)
+    writeDesktopFiles(packageDir, applicationsDir, desktopDir, removeFlag)
     infoMessage('tapeimgr configuration completed successfully!')
 
 
