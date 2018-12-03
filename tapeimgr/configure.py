@@ -78,6 +78,9 @@ def writeDesktopFiles(packageDir, applicationsDir, desktopDir, removeFlag):
     sudoUID = os.environ.get('SUDO_UID')
     sudoGID = os.environ.get('SUDO_GID')
 
+    # Full path to config and launcher scripts
+    pathName = os.path.abspath(os.path.dirname(sys.argv[0]))
+
     # Locate icon file in package
     iconFile = os.path.join(packageDir, 'icons', 'tapeimgr.png')
     if not os.path.isfile(iconFile):
@@ -94,7 +97,7 @@ def writeDesktopFiles(packageDir, applicationsDir, desktopDir, removeFlag):
     desktopList.append('Encoding=UTF-8')
     desktopList.append('Name=tapeimgr')
     desktopList.append('Comment=Simple tape imaging and extraction tool')
-    desktopList.append('Exec=tapeimgr')
+    desktopList.append('Exec=' + os.path.join(pathName, 'tapeimgr'))
     desktopList.append('Icon=' + iconFile)
     desktopList.append('Terminal=false')
     desktopList.append('Categories=Utility;System;GTK')
