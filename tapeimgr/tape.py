@@ -15,27 +15,17 @@ from . import shared
 
 class Tape:
     """Tape class"""
-    def __init__(self,
-                 dirOut='',
-                 tapeDevice='',
-                 initBlockSize='',
-                 files='',
-                 prefix='',
-                 extension='',
-                 fillBlocks='',
-                 SUDO_USER='',
-                 SUDO_UID='',
-                 SUDO_GID=''):
+    def __init__(self):
         """initialise Tape class instance"""
 
         # Input collected by GUI / CLI
-        self.dirOut = dirOut
-        self.tapeDevice = tapeDevice
-        self.initBlockSize = initBlockSize
-        self.files = files
-        self.prefix = prefix
-        self.extension = extension
-        self.fillBlocks = fillBlocks
+        self.dirOut = ''
+        self.tapeDevice = ''
+        self.initBlockSize = ''
+        self.files = ''
+        self.prefix = ''
+        self.extension = ''
+        self.fillBlocks = ''
         # Input validation flags
         self.dirOutIsDirectory = False
         self.outputExistsFlag = False
@@ -45,9 +35,9 @@ class Tape:
         self.filesIsValid = False
         # Miscellaneous attributes
         self.configFile = os.path.normpath('/etc/tapeimgr/tapeimgr.json')
-        self.SUDO_USER = SUDO_USER
-        self.SUDO_UID = SUDO_UID
-        self.SUDO_GID = SUDO_GID
+        self.SUDO_USER = ''
+        self.SUDO_UID = ''
+        self.SUDO_GID = ''
         self.logFile = ''
         self.logFileName = ''
         self.initBlockSizeDefault = ''
@@ -71,7 +61,7 @@ class Tape:
                 configDict = json.load(f)
         except:
             self.configSuccess = False
-        
+
         if self.configSuccess:
             # Update class variables
             try:
@@ -95,27 +85,6 @@ class Tape:
             except TypeError:
                 # SUDO_USER doesn't exist if not executed as root
                 self.dirOut = os.path.expanduser("~")
-
-    def getUserInput(self,
-                     dirOut='',
-                     tapeDevice='',
-                     initBlockSize='',
-                     files='',
-                     prefix='',
-                     extension='',
-                     fillBlocks=''):
-        """Assign user input collected by CLI/GUI to class variables"""
-        # TODO not used / maybe not needed as we can set instance variables directly in GUI /CLI??
-
-        self.dirOut = dirOut
-        self.tapeDevice = tapeDevice
-        self.initBlockSize = initBlockSize
-        self.files = files
-        self.prefix = prefix
-        self.extension = extension
-        self.fillBlocks = fillBlocks
-        self.logFile = os.path.join(self.dirOut, self.logFileName)
-
 
     def validateInput(self):
         """Validate and pre-process input"""
