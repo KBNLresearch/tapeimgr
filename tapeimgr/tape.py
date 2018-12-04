@@ -80,7 +80,7 @@ class Tape:
                 self.fillBlocks = bool(configDict['fillBlocks'])
             except KeyError:
                 self.configSuccess = False
-            
+
 
     def validateInput(self):
         """Validate and pre-process input"""
