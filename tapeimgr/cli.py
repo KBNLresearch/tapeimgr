@@ -195,22 +195,22 @@ def main():
     # Start main processing function
     try:
         myCLI.process()
-    except KeyboardInterrupt:
-        if myCLI.tape.tapeDeviceIOError:
-            # Tape device not accessible
-            msg = ('Cannot access tape device ' + myCLI.tape.tapeDevice +
-                   '. Check that device exists, and that tapeimgr is run as root')
-            errorExit(msg)
-        elif myCLI.tape.successFlag:
-            # Tape extraction completed with no errors
-            msg = ('Tape processed successfully without errors!')
-            printInfo(msg)
-            sys.exit(0)
-        else:
-            # Tape extraction resulted in errors
-            msg = ('One or more errors occurred while processing tape, '
-                   'check log file for details')
-            errorExit(msg)
+        if myCLI.tape.finishedFlag:
+            if myCLI.tape.tapeDeviceIOError:
+                # Tape device not accessible
+                msg = ('Cannot access tape device ' + myCLI.tape.tapeDevice +
+                    '. Check that device exists, and that tapeimgr is run as root')
+                errorExit(msg)
+            elif myCLI.tape.successFlag:
+                # Tape extraction completed with no errors
+                msg = ('Tape processed successfully without errors!')
+                printInfo(msg)
+                sys.exit(0)
+            else:
+                # Tape extraction resulted in errors
+                msg = ('One or more errors occurred while processing tape, '
+                    'check log file for details')
+                errorExit(msg)
     except Exception as e:
         # Unexpected error
         msg = 'An unexpected error occurred, see log file for details'

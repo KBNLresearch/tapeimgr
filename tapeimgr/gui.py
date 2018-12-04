@@ -39,6 +39,7 @@ class tapeimgrGUI(tk.Frame):
         self.queue_handler = QueueHandler(self.log_queue)
         # Create tape instance
         self.tape = Tape()
+        self.t1 = None
         # Read configuration file
         self.tape.getConfiguration()
         # Build the GUI
@@ -119,8 +120,9 @@ class tapeimgrGUI(tk.Frame):
                 self.quit_button.config(state='disabled')
 
                 # Launch tape processing function as subprocess
-                t1 = threading.Thread(target=self.tape.processTape)
-                t1.start()
+                self.t1 = threading.Thread(target=self.tape.processTape)
+                self.t1.start()
+
 
     def selectOutputDirectory(self, event=None):
         """Select output directory"""
@@ -339,25 +341,27 @@ def main():
             root.update_idletasks()
             root.update()
             time.sleep(0.1)
-        except KeyboardInterrupt:
-            if myGUI.tape.tapeDeviceIOError:
-                # Tape device not accessible
-                msg = ('Cannot access tape device ' + myGUI.tape.tapeDevice +
-                       '. Check that device exits, and that tapeimgr is run as root')
-                errorExit(msg)
-            elif myGUI.tape.successFlag:
-                # Tape extraction completed with no errors
-                msg = ('Tape processed successfully without errors')
-                tkMessageBox.showinfo("Success", msg)
-            else:
-                # Tape extraction resulted in errors
-                msg = ('One or more errors occurred while processing tape, '
-                       'check log file for details')
-                tkMessageBox.showwarning("Errors occurred", msg)
+            if myGUI.tape.finishedFlag:
+                myGUI.t1.join()
+                if myGUI.tape.tapeDeviceIOError:
+                    # Tape device not accessible
+                    msg = ('Cannot access tape device ' + myGUI.tape.tapeDevice +
+                           '. Check that device exits, and that tapeimgr is run as root')
+                    errorExit(msg)
+                elif myGUI.tape.successFlag:
+                    # Tape extraction completed with no errors
+                    msg = ('Tape processed successfully without errors')
+                    tkMessageBox.showinfo("Success", msg)
+                else:
+                    # Tape extraction resulted in errors
+                    msg = ('One or more errors occurred while processing tape, '
+                           'check log file for details')
+                    tkMessageBox.showwarning("Errors occurred", msg)
 
-            # Restart the program
-            python = sys.executable
-            os.execl(python, python, * sys.argv)
+                # Restart the program
+                python = sys.executable
+                os.execl(python, python, * sys.argv)
+
         except Exception as e:
             # Unexpected error
             msg = 'An unexpected error occurred, see log file for details'

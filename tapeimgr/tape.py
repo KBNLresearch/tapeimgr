@@ -45,6 +45,7 @@ class Tape:
         self.logFileName = ''
         self.checksumFileName = ''
         self.initBlockSizeDefault = ''
+        self.finishedFlag = False
         self.tapeDeviceIOError = False
         self.successFlag = True
         self.configSuccess = True
@@ -229,10 +230,11 @@ class Tape:
             logging.error('One or more errors occurred while processing tape, \
             check log file for details')
 
+        # Set finishedFlag
+        self.finishedFlag = True
+
         # Wait 2 seconds to avoid race condition
         time.sleep(2)
-        # This triggers a KeyboardInterrupt in the main thread
-        thread.interrupt_main()
 
     def processFile(self):
         """Process a file"""
