@@ -199,6 +199,7 @@ class tapeimgrGUI(tk.Frame):
         tk.Label(self, text='Files (comma-separated list)').grid(column=0, row=8, sticky='w')
         self.files_entry = tk.Entry(self, width=20)
         self.files_entry['background'] = 'white'
+        self.files_entry.insert(tk.END, self.tape.files)
         self.files_entry.grid(column=1, row=8, sticky='w')
 
         # Prefix
@@ -258,6 +259,33 @@ class tapeimgrGUI(tk.Frame):
             msg = ("Error reading configuration file! \n" +
                    "Run '(sudo) tapeimgr-config' to fix this.")
             errorExit(msg)
+
+    def reset_gui(self):
+        """Reset the GUI"""
+        # Create new tape instance
+        self.tape = Tape()
+        # Read configuration
+        self.tape.getConfiguration()
+        # Logging stuff
+        self.logger = logging.getLogger()
+        # Create a logging handler using a queue
+        self.log_queue = queue.Queue(-1)
+        self.queue_handler = QueueHandler(self.log_queue)
+        # Reset all entry widgets
+        self.outDirLabel['text'] = self.tape.dirOut
+        self.tapeDevice_entry.delete(0, tk.END)
+        self.tapeDevice_entry.insert(tk.END, self.tape.tapeDevice)
+        self.initBlockSize_entry.delete(0, tk.END)
+        self.initBlockSize_entry.insert(tk.END, self.tape.initBlockSize)
+        self.files_entry.delete(0, tk.END)
+        self.files_entry.insert(tk.END, self.tape.files)
+        self.prefix_entry.delete(0, tk.END)
+        self.prefix_entry.insert(tk.END, self.tape.prefix)
+        self.extension_entry.delete(0, tk.END)
+        self.extension_entry.insert(tk.END, self.tape.extension)
+        self.fillblocks_entry.variable = self.tape.fillBlocks
+        self.start_button.config(state='normal')
+        self.quit_button.config(state='normal')
 
     def setupLogger(self):
         """Set up logger configuration"""
@@ -343,6 +371,13 @@ def main():
             time.sleep(0.1)
             if myGUI.tape.finishedFlag:
                 myGUI.t1.join()
+                #myGUI.logger.removeHandler(myGUI.queue_handler)
+                #myGUI.queue_handler.close()
+                handlers = myGUI.logger.handlers[:]
+                for handler in handlers:
+                    handler.close()
+                    myGUI.logger.removeHandler(handler)
+
                 if myGUI.tape.tapeDeviceIOError:
                     # Tape device not accessible
                     msg = ('Cannot access tape device ' + myGUI.tape.tapeDevice +
@@ -359,8 +394,10 @@ def main():
                     tkMessageBox.showwarning("Errors occurred", msg)
 
                 # Restart the program
-                python = sys.executable
-                os.execl(python, python, * sys.argv)
+                #python = sys.executable
+                #os.execl(python, python, * sys.argv)
+                # Reset the GUI
+                myGUI.reset_gui()
 
         except Exception as e:
             # Unexpected error

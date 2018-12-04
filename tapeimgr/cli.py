@@ -199,7 +199,8 @@ def main():
             if myCLI.tape.tapeDeviceIOError:
                 # Tape device not accessible
                 msg = ('Cannot access tape device ' + myCLI.tape.tapeDevice +
-                    '. Check that device exists, and that tapeimgr is run as root')
+                       '. Check that device exists, and that current user has permission ' +
+                       'to access it')
                 errorExit(msg)
             elif myCLI.tape.successFlag:
                 # Tape extraction completed with no errors
@@ -209,7 +210,7 @@ def main():
             else:
                 # Tape extraction resulted in errors
                 msg = ('One or more errors occurred while processing tape, '
-                    'check log file for details')
+                       'check log file for details')
                 errorExit(msg)
     except Exception as e:
         # Unexpected error
