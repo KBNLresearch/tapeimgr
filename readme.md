@@ -182,6 +182,13 @@ For a user install use this:
 
 If you want to test *tapeimgr* without having access to a physical tape drive, check out [*mhvtl*, the Linux based Virtual Tape Library](https://github.com/markh794/mhvtl) (and also [these rough notes](https://gist.github.com/bitsgalore/f02e37aba6de988c8ae173a1307c73ff) which explain how to install mhvtl as well as its basic usage).
 
+**Note**: based on some limited tests, it seems that rewinding a virtual tape in *mhvtl* with the *mt* command (which is used by *tapeimgr*) doesn't actually rewind the tape at all! This has the effect that after a tape has been processed by *tapeimgr*, running *tapeimgr* again on the same device will cause *mt* to freeze (and *tapeimgr* with it). A workaround is to unload the tape, and then load it again using something like this:
+
+    mtx -f /dev/sg11 uload 1 0
+    mtx -f /dev/sg11 load 1 0
+
+After this the virtual tape device works normally again.
+
 ## Contributors
 
 Written by Johan van der Knijff. 
