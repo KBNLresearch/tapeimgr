@@ -1,6 +1,6 @@
 # tapeimgr
 
-**Tapeimgr** is a software application that sequentially reads all files from a data tape. After the extraction is done it also generates a checksum file with SHA-512 hashes of the extracted files. *Tapeimgr* is completely format-agnostic: it only extract the raw byte streams. It is up to the user to figure out the format of the extracted files (e.g. a TAR archive), and how to further process or open them.
+**Tapeimgr** is a software application that sequentially reads all files from a data tape. After the extraction is done it also generates a checksum file with SHA-512 hashes of the extracted files. *Tapeimgr* is completely format-agnostic: it only extracts the raw byte streams. It is up to the user to figure out the format of the extracted files (e.g. a TAR archive), and how to further process or open them.
 
 In short, *tapeimgr* tries to read sequential files from a tape until its logical end is reached. For each successive file, it automatically determines its block size using an iterative procedure.
 
