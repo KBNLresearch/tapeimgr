@@ -361,7 +361,7 @@ def main():
         except Exception as e:
             # Unexpected error
             msg = 'An unexpected error occurred, see log file for details'
-            logging.error(str(e))
+            logging.error(e, exc_info=True)
             errorExit(msg)
 
 if __name__ == "__main__":
