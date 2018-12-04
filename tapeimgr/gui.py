@@ -358,9 +358,10 @@ def main():
             # Restart the program
             python = sys.executable
             os.execl(python, python, * sys.argv)
-        except:
+        except Exception as e:
             # Unexpected error
-            msg = 'An unexpected error occurred'
+            msg = 'An unexpected error occurred, see log file for details'
+            logging.error(str(e))
             errorExit(msg)
 
 if __name__ == "__main__":

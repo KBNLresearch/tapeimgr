@@ -211,7 +211,11 @@ def main():
             msg = ('One or more errors occurred while processing tape, '
                    'check log file for details')
             errorExit(msg)
-
+    except Exception as e:
+        # Unexpected error
+        msg = 'An unexpected error occurred, see log file for details'
+        logging.error(str(e))
+        errorExit(msg)
 
 if __name__ == "__main__":
     main()
