@@ -27,11 +27,11 @@ At this stage *tapeimgr* has only had limited testing with a small number of DDS
 
 ### Preparation: add default user to tape group
 
-By default on Linux special permissions are needed to access tape devices. So before proceeding use the command below (replacing `$USER` with the name of the user who will be using tapeimgr):
+By default, Linux requires special permissions to access tape devices. So before proceeding any further, use the command below (replacing `$USER` with the name of the user who will be using tapeimgr):
 
     sudo adduser $USER tape
 
-The user is now added to the 'tape' [system group](https://wiki.debian.org/SystemGroups). Now log out and then log in again for the changes to take effect.  
+The user is now added to the 'tape' [system group](https://wiki.debian.org/SystemGroups). Now log out and then log in again for the changes to take effect.
 
 ### Global install
 
