@@ -1,6 +1,6 @@
 # tapeimgr
 
-**Tapeimgr** is a software application that sequentially reads all files from a data tape. After the extraction is done it also generates a checksum file with SHA-512 hashes of the extracted files. *Tapeimgr* is completely format-agnostic, and it is the user's responsibility to figure out how to further process or open the extracted files.
+**Tapeimgr** is a software application that sequentially reads all files from a data tape. After the extraction is done it also generates a checksum file with SHA-512 hashes of the extracted files. *Tapeimgr* is completely format-agnostic: it only extract the raw byte streams. It is up to the user to figure out the format of the extracted files (e.g. a TAR archive), and how to further process or open them.
 
 In short, *tapeimgr* tries to read sequential files from a tape until its logical end is reached. For each successive file, it automatically determines its block size using an iterative procedure.
 
@@ -116,7 +116,9 @@ Here `dirOut` is the output directory. So, the command-line equivalent of the fi
 
     tapeimgr /home/bcadmin/test/
 
-This will extract the contents of the tape to directory */home/bcadmin/test/*, using the default options.
+This will extract the contents of the tape to directory */home/bcadmin/test/*, using the default options. Note that for a user install, you may need to provide the full path to *tapeimgr*, i.e.:
+
+    ~/.local/bin/tapeimgr /home/bcadmin/test/
 
 ### Options
 
@@ -133,25 +135,52 @@ As with the GUI interface you can customize the default behaviour by using one o
 |`--extension EXT, -e EXT`|Output file extension (default: `dd`).|
 |`--fill, -f`|Fill blocks that give read errors with null bytes. When this option is checked, *tapeimgr* calls *dd* with the flags `conv=noerror,sync`. The use of these flags is often recommended to ensure a forensic image with no missing/offset bytes in case of read errors (source: [*forensicswiki*](https://www.forensicswiki.org/wiki/Dd)), but when used with a block size that is larger than the actual block size it will generate padding bytes that make the extracted data unreadable. Because of this, any user-specified value of the `--blocksize`setting (see above) is ignored when this option is used. **WARNING: this option may result in malformed output if the actual block size is either smaller than 512 bytes, and/or if the block size is not a multiple of 512 bytes! (I have no idea if this is even possible?).**|
 
+## Configuration file
+
+*Tapeimgr*'s internal settings (default values for output file names, tape device, etc.) are defined in a configuration file in Json format. For a global installation it is located at */etc/tapeimgr/tapeimgr.json*; for a user install it can be found at *~/.config/tapeimgr/tapeimgr.json*. The default configuration is show below:
+
+    {
+        "checksumFileName": "checksums.sha512",
+        "extension": "dd",
+        "files": "",
+        "fillBlocks": "False",
+        "initBlockSize": "512",
+        "logFileName": "tapeimgr.log",
+        "prefix": "file",
+        "tapeDevice": "/dev/nst0"
+    }
+
+You can change *tapeimgr*'s default settings by editing this file. Note that it is *not* recommended to change the value of *initBlockSize*, as it may result in unexpected behaviour. If you accidentally messed up the configuration file, you can always restore the original one by running the *tapeimgr-config* tool again.
+
 ## Uninstalling tapeimgr
 
-To remove *tapeimgr*, first run the *tapeimgr-config* with the `--remove` flag to remove the configuration file, the pkexec launcher, the the pkexec policy file and the desktop files:
+To remove *tapeimgr*, first run the *tapeimgr-config* with the `--remove` flag to remove the configuration file and the start menu and desktop files. For a global install, run:
 
     sudo tapeimgr-config --remove
 
-The resulting output:
+For a user install, run:
 
-    INFO: removing configuration file /etc/tapeimgr/tapeimgr.json
-    INFO: removing configuration directory /etc/tapeimgr
-    INFO: removing pkexec launcher file /usr/local/bin/tapeimgr-pkexec
-    INFO: removing policy file /usr/share/polkit-1/actions/com.ubuntu.pkexec.tapeimgr.policy
+    ~/.local/bin/tapeimgr-config --remove
+
+The resulting output (shown below for a user install):
+
+    INFO: removing configuration file /home/johan/.config/tapeimgr/tapeimgr.json
+    INFO: removing configuration directory /home/johan/.config/tapeimgr
     INFO: removing desktop file /home/johan/Desktop/tapeimgr.desktop
-    INFO: removing desktop file /usr/share/applications/tapeimgr.desktop
+    INFO: removing desktop file /home/johan/.local/share/applications/tapeimgr.desktop
     INFO: tapeimgr configuration completed successfully!
 
-Then run the following command to remove the python package:
+Then remove the Python package with following command (global install):
 
     sudo pip3 uninstall tapeimgr
+
+For a user install use this:
+
+    pip3 uninstall tapeimgr
+
+## Testing tapeimgr witout a tape drive
+
+If you want to test *tapeimgr* without having access to a physical tape drive, check out [*mhvtl*, the Linux based Virtual Tape Library](https://github.com/markh794/mhvtl) (and also [these rough notes](https://gist.github.com/bitsgalore/f02e37aba6de988c8ae173a1307c73ff) which explain how to install mhvtl as well as its basic usage).
 
 ## Contributors
 
