@@ -4,13 +4,11 @@ do the actual tape imaging.
 """
 
 import os
-import sys
 import io
 import json
 import time
 import logging
 import glob
-import _thread as thread
 from . import shared
 
 class Tape:
@@ -179,11 +177,13 @@ class Tape:
             self.successFlag = False
             logging.critical('Exiting because tape device is not accessible')
             logging.info('Success: ' + str(self.successFlag))
+
             # Wait 2 seconds to avoid race condition
             time.sleep(2)
-            # This triggers a KeyboardInterrupt in the main thread
-            thread.interrupt_main()
-            sys.exit()
+
+            # Set finishedFlag
+            self.finishedFlag = True
+
 
         # Iterate over all files on tape until end is detected
         while not self.endOfTape:
