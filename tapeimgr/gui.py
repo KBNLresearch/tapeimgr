@@ -393,9 +393,6 @@ def main():
                            'check log file for details')
                     tkMessageBox.showwarning("Errors occurred", msg)
 
-                # Restart the program
-                #python = sys.executable
-                #os.execl(python, python, * sys.argv)
                 # Reset the GUI
                 myGUI.reset_gui()
 
