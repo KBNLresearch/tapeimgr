@@ -6,9 +6,11 @@ In short, *tapeimgr* tries to read sequential files from a tape until its logica
 
 Internally *tapeimgr* wraps around the Linux [*dd*](http://manpages.ubuntu.com/manpages/bionic/man1/dd.1.html) and [*mt*](http://manpages.ubuntu.com/manpages/bionic/man1/mt.1.html) tools. 
 
-## Warning
+## Warnings
 
-At this stage *tapeimgr* has only had limited testing with a small number of DDS-1 and DLT-IV tapes. Use at your own risk, and please report any unexpected behaviour using the issue tracker.
+At this stage *tapeimgr* has only had limited testing with a small number of DDS-1 and DLT-IV tapes. Use at your own risk, and please [report any unexpected behaviour using the issue tracker](https://github.com/KBNLresearch/tapeimgr/issues).
+
+For now *tapeimgr* can only read tapes that were written in fixed block mode; tapes written in variable block mode may result in unexpected behaviour (if ). Support of variable block mode [may be added to a future release](https://github.com/KBNLresearch/tapeimgr/issues/28). Note that older tapes were most likely written in fixed block mode, as variable block mode is typically only supported by more recent tape drives.
 
 ## System requirements
 
