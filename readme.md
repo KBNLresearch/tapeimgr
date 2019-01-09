@@ -56,7 +56,7 @@ If all goes well this should result in the following output:
 
 Use the following command for a single-user installation:
 
-    pip3 --user install tapeimgr
+    pip3 install --user tapeimgr
 
 Then run:
 
