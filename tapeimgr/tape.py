@@ -42,7 +42,7 @@ class Tape:
             self.configFile = os.path.join(homeDir, '.config/tapeimgr/tapeimgr.json')
         else:
             self.configFile = os.path.normpath('/etc/tapeimgr/tapeimgr.json')
- 
+
         # Miscellaneous attributes
         self.logFile = ''
         self.logFileName = ''
@@ -152,7 +152,7 @@ class Tape:
 
     def processTape(self):
         """Process a tape"""
-    
+
         # Create dictionary for storing metadata (which are later written to file)
         metadata = {}
 
@@ -257,7 +257,7 @@ class Tape:
         metadata['successFlag'] = self.successFlag
         metadata['checksums'] = checksums
         metadata['checksumType'] = 'SHA-512'
-    
+
         # Write metadata to file in json format
         logging.info('*** Writing metadata file ***')
         metadataFile = os.path.join(self.dirOut, self.metadataFileName)
@@ -277,7 +277,7 @@ class Tape:
             check log file for details')
 
         # Set finishedFlag
-        self.finishedFlag = True  
+        self.finishedFlag = True
 
         # Wait 2 seconds to avoid race condition
         time.sleep(2)
