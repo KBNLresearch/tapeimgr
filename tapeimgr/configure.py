@@ -52,6 +52,7 @@ def writeConfigFile(configRootDir, removeFlag):
     configSettings['files'] = ''
     configSettings['checksumFileName'] = 'checksums.sha512'
     configSettings['logFileName'] = 'tapeimgr.log'
+    configSettings['metadataFileName'] = 'metadata.json'
     configSettings['tapeDevice'] = '/dev/nst0'
     configSettings['initBlockSize'] = '512'
     configSettings['prefix'] = 'file'
