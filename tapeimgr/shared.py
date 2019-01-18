@@ -5,8 +5,9 @@ import os
 import logging
 import glob
 import hashlib
+import datetime
 import subprocess as sub
-
+import pytz
 
 def launchSubProcess(args, writeLog=True):
     """Launch subprocess and return exit code, stdout and stderr"""
@@ -90,4 +91,13 @@ def checksumDirectory(directory, extension, checksumFile):
     except IOError:
         wroteChecksums = False
 
-    return wroteChecksums
+    return wroteChecksums, checksums
+
+def generateDateTime(timeZone):
+    """Generate date / time string in ISO format with added time zone info"""
+
+    dateTime = datetime.datetime.now()
+    pst = pytz.timezone(timeZone)
+    dateTime = pst.localize(dateTime)
+    dateTimeFormatted = dateTime.isoformat()
+    return dateTimeFormatted

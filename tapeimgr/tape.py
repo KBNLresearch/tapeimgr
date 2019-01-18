@@ -9,6 +9,7 @@ import json
 import time
 import logging
 import glob
+from . import config
 from . import shared
 
 class Tape:
@@ -57,6 +58,7 @@ class Tape:
         self.file = 1
         self.filesList = []
         self.blockSize = 0
+        self.timeZone = ''
 
     def getConfiguration(self):
         """read configuration file and set variables accordingly"""
@@ -83,6 +85,7 @@ class Tape:
                 self.prefix = configDict['prefix']
                 self.extension = configDict['extension']
                 self.fillBlocks = bool(configDict['fillBlocks'])
+                self.timeZone = configDict['timeZone']
             except KeyError:
                 self.configSuccess = False
 
@@ -147,6 +150,9 @@ class Tape:
 
     def processTape(self):
         """Process a tape"""
+    
+        # Create dictionary for storing metadata (which are later written to file)
+        metadata = {}
 
         # Write some general info to log file
         logging.info('***************************')
@@ -160,6 +166,9 @@ class Tape:
         logging.info('prefix: ' + self.prefix)
         logging.info('extension: ' + self.extension)
         logging.info('fill blocks: ' + str(self.fillBlocks))
+
+        ## Acquisition start date/time
+        acquisitionStart = shared.generateDateTime(self.timeZone)
 
         if self.fillBlocks:
             # dd's conv=sync flag results in padding bytes for each block if block
@@ -190,7 +199,6 @@ class Tape:
             # Set finishedFlag
             self.finishedFlag = True
 
-
         # Iterate over all files on tape until end is detected
         while not self.endOfTape:
             # Only extract files defined by files parameter
@@ -209,7 +217,7 @@ class Tape:
         # Create checksum file
         logging.info('*** Creating checksum file ***')
         checksumFile = os.path.join(self.dirOut, self.checksumFileName)
-        shared.checksumDirectory(self.dirOut, self.extension, checksumFile)
+        writeFlag, checksums = shared.checksumDirectory(self.dirOut, self.extension, checksumFile)
 
         # Rewind and eject the tape
         logging.info('*** Rewinding tape ***')
@@ -228,6 +236,36 @@ class Tape:
         args.append('eject')
         mtStatus, mtOut, mtErr = shared.launchSubProcess(args)
 
+        # Acquisition end date/time
+        acquisitionEnd = shared.generateDateTime(self.timeZone)
+
+        # Fill metadata dictionary
+        metadata['identifier'] = self.identifier
+        metadata['description'] = self.description
+        metadata['notes'] = self.notes
+        metadata['tapeImageVersion'] = config.version
+        metadata['tapeDevice'] = self.tapeDevice
+        metadata['initBlockSize'] = self.initBlockSize
+        metadata['files'] = self.files
+        metadata['prefix'] = self.prefix
+        metadata['extension'] = self.extension
+        metadata['fillBlocks'] = self.fillBlocks
+        metadata['acquisitionStart'] = acquisitionStart
+        metadata['acquisitionEnd'] = acquisitionEnd
+        metadata['successFlag'] = self.successFlag
+        metadata['checksums'] = checksums
+        metadata['checksumType'] = 'SHA-512'
+    
+        # Write metadata to file in json format
+        logging.info('*** Writing metadata file ***')
+        metadataFile = os.path.join(self.dirOut, self.metadataFileName)
+        try:
+            with io.open(metadataFile, 'w', encoding='utf-8') as f:
+                json.dump(metadata, f, indent=4, sort_keys=False)
+        except IOError:
+            self.successFlag = False
+            logging.error('error while writing metadata file')
+
         logging.info('Success: ' + str(self.successFlag))
 
         if self.successFlag:
@@ -237,7 +275,7 @@ class Tape:
             check log file for details')
 
         # Set finishedFlag
-        self.finishedFlag = True
+        self.finishedFlag = True  
 
         # Wait 2 seconds to avoid race condition
         time.sleep(2)
