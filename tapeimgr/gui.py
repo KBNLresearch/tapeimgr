@@ -191,9 +191,9 @@ class tapeimgrGUI(tk.Frame):
         self.initBlockSize_entry.insert(tk.END, self.tape.initBlockSize)
         self.initBlockSize_entry.grid(column=1, row=7, sticky='w')
         self.decreaseBSButton = tk.Button(self, text='-', command=self.decreaseBlocksize, width=1)
-        self.decreaseBSButton.grid(column=2, row=7, sticky='e')
+        self.decreaseBSButton.grid(column=1, row=7, sticky='e')
         self.increaseBSButton = tk.Button(self, text='+', command=self.increaseBlocksize, width=1)
-        self.increaseBSButton.grid(column=3, row=7, sticky='w')
+        self.increaseBSButton.grid(column=2, row=7, sticky='w')
 
         # Files
         tk.Label(self, text='Files (comma-separated list)').grid(column=0, row=8, sticky='w')
@@ -224,27 +224,50 @@ class tapeimgrGUI(tk.Frame):
 
         ttk.Separator(self, orient='horizontal').grid(column=0, row=12, columnspan=4, sticky='ew')
 
+        # Identifier entry field
+        tk.Label(self, text='Identifier').grid(column=0, row=13, sticky='w')
+        self.identifier_entry = tk.Entry(self, width=20)
+        self.identifier_entry['background'] = 'white'
+        self.identifier_entry.insert(tk.END, self.tape.identifier)
+        self.identifier_entry.grid(column=1, row=13, sticky='w')
+
+        # Description entry field
+        tk.Label(self, text='Description').grid(column=0, row=14, sticky='w')
+        self.description_entry = tk.Text(self, height=2, width=35)
+        self.description_entry['background'] = 'white'
+        self.description_entry.insert(tk.END, self.tape.description)
+        self.description_entry.grid(column=1, row=14, sticky='w', columnspan=1)
+
+        # Notes entry field
+        tk.Label(self, text='Notes').grid(column=0, row=15, sticky='w')
+        self.notes_entry = tk.Text(self, height=6, width=35)
+        self.notes_entry['background'] = 'white'
+        self.notes_entry.insert(tk.END, self.tape.notes)
+        self.notes_entry.grid(column=1, row=15, sticky='w', columnspan=1)
+
+        ttk.Separator(self, orient='horizontal').grid(column=0, row=16, columnspan=4, sticky='ew')
+
         self.start_button = tk.Button(self,
                                       text='Start',
                                       width=10,
                                       underline=0,
                                       command=self.on_submit)
-        self.start_button.grid(column=1, row=13, sticky='e')
+        self.start_button.grid(column=1, row=17, sticky='w')
 
         self.quit_button = tk.Button(self,
                                      text='Exit',
                                      width=10,
                                      underline=0,
                                      command=self.on_quit)
-        self.quit_button.grid(column=2, row=13, sticky='w', columnspan=2)
+        self.quit_button.grid(column=1, row=17, sticky='e')
 
-        ttk.Separator(self, orient='horizontal').grid(column=0, row=14, columnspan=4, sticky='ew')
+        ttk.Separator(self, orient='horizontal').grid(column=0, row=18, columnspan=4, sticky='ew')
 
         # Add ScrolledText widget to display logging info
         self.st = ScrolledText.ScrolledText(self, state='disabled', height=15)
         self.st.configure(font='TkFixedFont')
         self.st['background'] = 'white'
-        self.st.grid(column=0, row=15, sticky='ew', columnspan=4)
+        self.st.grid(column=0, row=19, sticky='ew', columnspan=4)
 
         # Define bindings for keyboard shortcuts: buttons
         self.root.bind_all('<Control-Key-d>', self.selectOutputDirectory)

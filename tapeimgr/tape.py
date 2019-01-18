@@ -24,6 +24,9 @@ class Tape:
         self.prefix = ''
         self.extension = ''
         self.fillBlocks = ''
+        self.identifier = ''
+        self.description = ''
+        self.notes = ''
         # Input validation flags
         self.dirOutIsDirectory = False
         self.outputExistsFlag = False
@@ -42,6 +45,7 @@ class Tape:
         self.logFile = ''
         self.logFileName = ''
         self.checksumFileName = ''
+        self.metadataFileName = ''
         self.initBlockSizeDefault = ''
         self.finishedFlag = False
         self.tapeDeviceIOError = False
@@ -71,6 +75,7 @@ class Tape:
                 self.files = configDict['files']
                 self.logFileName = configDict['logFileName']
                 self.checksumFileName = configDict['checksumFileName']
+                self.metadataFileName = configDict['metadataFileName']
                 self.tapeDevice = configDict['tapeDevice']
                 self.initBlockSize = configDict['initBlockSize']
                 self.initBlockSizeDefault = self.initBlockSize
