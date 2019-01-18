@@ -76,15 +76,16 @@ def checksumDirectory(directory, extension, checksumFile):
     # Dictionary for storing results
     checksums = {}
 
-    for fName in allFiles:
-        hashString = generate_file_sha512(fName)
+    for thisFile in allFiles:
+        hashString = generate_file_sha512(thisFile)
+        fName = os.path.basename(thisFile)
         checksums[fName] = hashString
 
     # Write checksum file
     try:
         fChecksum = open(checksumFile, "w", encoding="utf-8")
         for fName in checksums:
-            lineOut = checksums[fName] + " " + os.path.basename(fName) + '\n'
+            lineOut = checksums[fName] + " " + fName + '\n'
             fChecksum.write(lineOut)
         fChecksum.close()
         wroteChecksums = True
