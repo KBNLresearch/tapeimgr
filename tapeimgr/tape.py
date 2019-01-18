@@ -243,7 +243,7 @@ class Tape:
         metadata['identifier'] = self.identifier
         metadata['description'] = self.description
         metadata['notes'] = self.notes
-        metadata['tapeImageVersion'] = config.version
+        metadata['tapeimagrVersion'] = config.version
         metadata['tapeDevice'] = self.tapeDevice
         metadata['initBlockSize'] = self.initBlockSize
         metadata['files'] = self.files
