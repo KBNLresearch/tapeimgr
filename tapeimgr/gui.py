@@ -309,6 +309,12 @@ class tapeimgrGUI(tk.Frame):
         self.prefix_entry.insert(tk.END, self.tape.prefix)
         self.extension_entry.delete(0, tk.END)
         self.extension_entry.insert(tk.END, self.tape.extension)
+        self.identifier_entry.delete(0, tk.END)
+        self.identifier_entry.insert(tk.END, self.tape.identifier)
+        self.description_entry.delete(0, tk.END)
+        self.description_entry.insert(tk.END, self.tape.description)
+        self.notes_entry.delete(0, tk.END)
+        self.notes_entry.insert(tk.END, self.tape.notes)
         self.fillblocks_entry.variable = self.tape.fillBlocks
         self.start_button.config(state='normal')
         self.quit_button.config(state='normal')
