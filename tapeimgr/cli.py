@@ -86,7 +86,24 @@ class tapeimgrCLI:
                                  help='output file extension',
                                  dest='ext',
                                  default=self.tape.extension)
-
+        self.parser.add_argument('--identifier', '-i',
+                                 action='store',
+                                 type=str,
+                                 help='identifier linked to this tape',
+                                 dest='identifier',
+                                 default='')
+        self.parser.add_argument('--description', '-d',
+                                 action='store',
+                                 type=str,
+                                 help='text description of this tape',
+                                 dest='description',
+                                 default='')
+        self.parser.add_argument('--notes', '-n',
+                                 action='store',
+                                 type=str,
+                                 help='notes on this tape',
+                                 dest='notes',
+                                 default='')
         # Parse arguments
         args = self.parser.parse_args()
         self.tape.dirOut = args.dirOut
@@ -96,6 +113,10 @@ class tapeimgrCLI:
         self.tape.files = args.files
         self.tape.prefix = args.pref
         self.tape.extension = args.ext
+        self.tape.identifier = args.identifier
+        self.tape.description = args.description
+        self.tape.notes = args.notes
+
 
     def process(self):
         """fetch and validate entered input, and start processing"""
