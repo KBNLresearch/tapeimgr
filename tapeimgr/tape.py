@@ -18,7 +18,7 @@ class Tape:
         """initialise Tape class instance"""
 
         # Input collected by GUI / CLI
-        self.dirOut = os.path.expanduser("~")
+        self.dirOut = ''
         self.tapeDevice = ''
         self.initBlockSize = ''
         self.files = ''
@@ -59,6 +59,7 @@ class Tape:
         self.filesList = []
         self.blockSize = 0
         self.timeZone = ''
+        self.defaultDir = ''
 
     def getConfiguration(self):
         """read configuration file and set variables accordingly"""
@@ -86,6 +87,7 @@ class Tape:
                 self.extension = configDict['extension']
                 self.fillBlocks = bool(configDict['fillBlocks'])
                 self.timeZone = configDict['timeZone']
+                self.defaultDir = configDict['defaultDir']
             except KeyError:
                 self.configSuccess = False
 

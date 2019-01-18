@@ -42,6 +42,11 @@ class tapeimgrGUI(tk.Frame):
         self.t1 = None
         # Read configuration file
         self.tape.getConfiguration()
+        # Set dirOut, depending on whether value from config is a directory
+        if os.path.isdir(self.tape.defaultDir):
+            self.tape.dirOut = self.tape.defaultDir
+        else:
+            self.tape.dirOut = os.path.expanduser("~")
         # Build the GUI
         self.build_gui()
 
@@ -292,6 +297,11 @@ class tapeimgrGUI(tk.Frame):
         self.tape = Tape()
         # Read configuration
         self.tape.getConfiguration()
+        # Set dirOut, depending on whether value from config is a directory
+        if os.path.isdir(self.tape.defaultDir):
+            self.tape.dirOut = self.tape.defaultDir
+        else:
+            self.tape.dirOut = os.path.expanduser("~")
         # Logging stuff
         self.logger = logging.getLogger()
         # Create a logging handler using a queue
