@@ -41,6 +41,7 @@ class Tape:
             self.configFile = os.path.join(homeDir, '.config/tapeimgr/tapeimgr.json')
         else:
             self.configFile = os.path.normpath('/etc/tapeimgr/tapeimgr.json')
+ 
         # Miscellaneous attributes
         self.logFile = ''
         self.logFileName = ''

@@ -92,7 +92,7 @@ class tapeimgrCLI:
                                  help='identifier linked to this tape',
                                  dest='identifier',
                                  default='')
-        self.parser.add_argument('--description', '-d',
+        self.parser.add_argument('--description', '-c',
                                  action='store',
                                  type=str,
                                  help='text description of this tape',
