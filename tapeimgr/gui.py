@@ -61,6 +61,9 @@ class tapeimgrGUI(tk.Frame):
         self.tape.files = self.files_entry.get().strip()
         self.tape.prefix = self.prefix_entry.get().strip()
         self.tape.extension = self.extension_entry.get().strip()
+        self.tape.identifier = self.identifier_entry.get().strip()
+        self.tape.description = self.description_entry.get(1.0, tk.END).strip()
+        self.tape.notes = self.notes_entry.get(1.0, tk.END).strip()
         self.tape.fillBlocks = self.fBlocks.get()
 
         # Validate input
