@@ -261,7 +261,7 @@ class Tape:
         metadataFile = os.path.join(self.dirOut, self.metadataFileName)
         try:
             with io.open(metadataFile, 'w', encoding='utf-8') as f:
-                json.dump(metadata, f, indent=4, sort_keys=False)
+                json.dump(metadata, f, indent=4, sort_keys=True)
         except IOError:
             self.successFlag = False
             logging.error('error while writing metadata file')
