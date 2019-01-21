@@ -13,6 +13,7 @@ import time
 import threading
 import logging
 import queue
+import uuid
 import tkinter as tk
 from tkinter import filedialog as tkFileDialog
 from tkinter import scrolledtext as ScrolledText
@@ -160,6 +161,12 @@ class tapeimgrGUI(tk.Frame):
         self.initBlockSize_entry.delete(0, tk.END)
         self.initBlockSize_entry.insert(tk.END, str(blockSizeNew))
 
+    def insertUUID(self):
+        """Insert UUID into identifier field"""
+        myID = str(uuid.uuid1())
+        self.identifier_entry.delete(0, tk.END)
+        self.identifier_entry.insert(tk.END, myID)
+
     def build_gui(self):
         """Build the GUI"""
 
@@ -238,6 +245,8 @@ class tapeimgrGUI(tk.Frame):
         self.identifier_entry['background'] = 'white'
         self.identifier_entry.insert(tk.END, self.tape.identifier)
         self.identifier_entry.grid(column=1, row=13, sticky='w')
+        self.uuidButton = tk.Button(self, text='UUID', command=self.insertUUID, width=2)
+        self.uuidButton.grid(column=1, row=13, sticky='e')
 
         # Description entry field
         tk.Label(self, text='Description').grid(column=0, row=14, sticky='w')
