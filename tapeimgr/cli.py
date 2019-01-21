@@ -10,6 +10,7 @@ Research department,  KB / National Library of the Netherlands
 import sys
 import logging
 import argparse
+import uuid
 from .tape import Tape
 from . import config
 
@@ -89,7 +90,7 @@ class tapeimgrCLI:
         self.parser.add_argument('--identifier', '-i',
                                  action='store',
                                  type=str,
-                                 help='identifier linked to this tape',
+                                 help='identifier linked to this tape (enter @uuid to generate UUID)',
                                  dest='identifier',
                                  default='')
         self.parser.add_argument('--description', '-c',
@@ -113,7 +114,10 @@ class tapeimgrCLI:
         self.tape.files = args.files
         self.tape.prefix = args.pref
         self.tape.extension = args.ext
-        self.tape.identifier = args.identifier
+        if args.identifier == '@uuid':
+            self.tape.identifier = str(uuid.uuid1())
+        else:
+            self.tape.identifier = args.identifier
         self.tape.description = args.description
         self.tape.notes = args.notes
 
