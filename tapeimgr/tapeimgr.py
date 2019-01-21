@@ -10,7 +10,7 @@ from .cli import main as cliLaunch
 from .gui import main as guiLaunch
 from . import config
 
-__version__ = '0.4.0'
+__version__ = '0.4.0b1'
 
 def main():
     """Launch GUI if no command line arguments were given; otherwise launch CLI"""
