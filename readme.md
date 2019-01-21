@@ -113,9 +113,11 @@ If needed you can use the folowing options to customize the behaviour of *tapeim
 
 It is also possible to invoke *tapeimgr* with command-line arguments. The general syntax is:
 
-    tapeimgr [-h] [--version] [--fill] [--device DEVICE] [--blocksize SIZE]
-                    [--files FILES] [--prefix PREF] [--extension EXT]
-                    dirOut
+    tapeimgr [-h] [--version] [--fill] [--device DEVICE]
+                [--blocksize SIZE] [--files FILES] [--prefix PREF]
+                [--extension EXT] [--identifier IDENTIFIER]
+                [--description DESCRIPTION] [--notes NOTES]
+                dirOut
 
 Here `dirOut` is the output directory. So, the command-line equivalent of the first GUI example is:
 
