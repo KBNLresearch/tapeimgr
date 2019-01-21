@@ -91,7 +91,7 @@ If the extraction finished without any errors, the output directory now contains
 
 ![](./img/tapeimgr-files.png)
 
-Here, **file000001.dd** through **file000003.dd** are the extracted files; **checksums.sha512** contains the SHA512 checksums of the extracted files, and **tapeimgr.log** is the log file.
+Here, **file000001.dd** through **file000003.dd** are the extracted files; **checksums.sha512** contains the SHA512 checksums of the extracted files, **metadata.json** contains some basic metadata and **tapeimgr.log** is the log file.
 
 ### Options
 
@@ -105,6 +105,9 @@ If needed you can use the folowing options to customize the behaviour of *tapeim
 |**Prefix**|Output prefix (default: `file`).|
 |**Extension**|Output file extension (default: `dd`).|
 |**Fill failed blocks**|Fill blocks that give read errors with null bytes. When this option is checked, *tapeimgr* calls *dd* with the flags `conv=noerror,sync`. The use of these flags is often recommended to ensure a forensic image with no missing/offset bytes in case of read errors (source: [*forensicswiki*](https://www.forensicswiki.org/wiki/Dd)), but when used with a block size that is larger than the actual block size it will generate padding bytes that make the extracted data unreadable. Because of this, any user-specified value of  the **Initial Block Size** setting (see above) is ignored when this option is used. **WARNING: this option may result in malformed output if the actual block size is either smaller than 512 bytes, and/or if the block size is not a multiple of 512 bytes! (I have no idea if this is even possible?).**|
+|**Identifier**|Unique identifier. You can either enter an existing identifier yourself, or press the *UUID* button to generate a [Universally unique identifier](https://en.wikipedia.org/wiki/Universally_unique_identifier).|
+|**Description**|A text string that describes the tape (e.g. the title that is written on its inlay card).|
+|**Notes**|Any additional info or notes you want to record with the tape.|
 
 ## Command-line operation
 
@@ -136,6 +139,35 @@ As with the GUI interface you can customize the default behaviour by using one o
 |`--prefix PREF, -p PREF`|Output prefix (default: `file`).|
 |`--extension EXT, -e EXT`|Output file extension (default: `dd`).|
 |`--fill, -f`|Fill blocks that give read errors with null bytes. When this option is checked, *tapeimgr* calls *dd* with the flags `conv=noerror,sync`. The use of these flags is often recommended to ensure a forensic image with no missing/offset bytes in case of read errors (source: [*forensicswiki*](https://www.forensicswiki.org/wiki/Dd)), but when used with a block size that is larger than the actual block size it will generate padding bytes that make the extracted data unreadable. Because of this, any user-specified value of the `--blocksize`setting (see above) is ignored when this option is used. **WARNING: this option may result in malformed output if the actual block size is either smaller than 512 bytes, and/or if the block size is not a multiple of 512 bytes! (I have no idea if this is even possible?).**|
+|`--identifier IDENTIFIER, -i IDENTIFIER`|Unique identifier. You can either enter an existing identifier yourself, or enter special value `@uuid` to generate a [Universally unique identifier](https://en.wikipedia.org/wiki/Universally_unique_identifier).|
+|`--description DESCRIPTION, -c DESCRIPTION `|A text string that describes the tape (e.g. the title that is written on its inlay card).|
+|`--notes NOTES, -n NOTES`|Any additional info or notes you want to record with the tape.|
+
+## Metadata file
+
+The file *metadata.json* contains metadata in JSON format. Below is an example:
+
+    {
+        "acquisitionEnd": "2019-01-21T13:26:38.813304+01:00",
+        "acquisitionStart": "2019-01-21T13:25:53.570770+01:00",
+        "checksumType": "SHA-512",
+        "checksums": {
+            "file000001.dd": "e58279519cd394870f7d39fe59d722bf85c64fb95a9b4c8a893fde0a606f5e270529d17d0598d9e703f9b259a2355c91aaa3721249a64982e580f2f18e6e52f5",
+            "file000002.dd": "19f200700afeab90d45d3beec0cdaf5290ca517574b9049feee80d1257c5d11677d9ecd101c31e30b02d58b4d84c8cac0ea7326d10342d1d7ea4ce40dde663ca",
+            "file000003.dd": "9f4f5ea7cc3639c07ca88b4dcda9b976d2802d229a26415d960962d4fdc2d920ea1ce554343dfc5f22c3c616cad3977e24ddf33c86417dc0112a8560e2f1e75f"
+        },
+        "description": "Test tape October 25 2018",
+        "extension": "dd",
+        "files": "",
+        "fillBlocks": false,
+        "identifier": "2d257dec-1d77-11e9-9594-2c4138b5272c",
+        "initBlockSize": 512,
+        "notes": "This tape only contains some old rubbish. Created specifically for testing tapeimgr.",
+        "prefix": "file",
+        "successFlag": true,
+        "tapeDevice": "/dev/nst0",
+        "tapeimagrVersion": "0.4.0b1"
+    }
 
 ## Configuration file
 
@@ -143,16 +175,25 @@ As with the GUI interface you can customize the default behaviour by using one o
 
     {
         "checksumFileName": "checksums.sha512",
+        "defaultDir": "",
         "extension": "dd",
         "files": "",
         "fillBlocks": "False",
         "initBlockSize": "512",
         "logFileName": "tapeimgr.log",
+        "metadataFileName": "metadata.json",
         "prefix": "file",
-        "tapeDevice": "/dev/nst0"
+        "tapeDevice": "/dev/nst0",
+        "timeZone": "Europe/Amsterdam"
     }
 
-You can change *tapeimgr*'s default settings by editing this file. Note that it is *not* recommended to change the value of *initBlockSize*, as it may result in unexpected behaviour. If you accidentally messed up the configuration file, you can always restore the original one by running the *tapeimgr-config* tool again.
+You can change *tapeimgr*'s default settings by editing this file. Most of the above settings are self-explanatory, with the exception of the following:
+
+- **defaultDir**: this allows you to change the default file path that is opened after pressing *Select Output Directory*. By default *tapeimgr* uses the current user's home directory. However, if *defaultDir* points to a valid directory path, that directory is used instead.
+
+- **timeZone**: time zone string that is used to correctly format the *acquisitionStart* and *acquisitionEnd* date/time strings. You can adapt it to your own location by using the *TZ database name* from [this list of tz database time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).
+
+Note that it is *not* recommended to change the value of *initBlockSize*, as it may result in unexpected behaviour. If you accidentally messed up the configuration file, you can always restore the original one by running the *tapeimgr-config* tool again.
 
 ## Uninstalling tapeimgr
 
