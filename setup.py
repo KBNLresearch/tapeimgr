@@ -24,8 +24,10 @@ def find_version(*file_paths):
 
 
 INSTALL_REQUIRES = [
-    'setuptools'
+    'setuptools',
+    'pytz'
 ]
+
 PYTHON_REQUIRES = '>=3.2'
 
 setup(name='tapeimgr',
