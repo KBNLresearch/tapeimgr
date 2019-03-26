@@ -266,7 +266,7 @@ class tapeimgrGUI(tk.Frame):
 
         # Description entry field
         tk.Label(self, text='Description').grid(column=0, row=14, sticky='w')
-        self.description_entry = tk.Entry(self, height=2, width=35)
+        self.description_entry = tk.Entry(self, width=35)
         self.description_entry['background'] = 'white'
         self.description_entry.insert(tk.END, self.tape.description)
         self.description_entry.grid(column=1, row=14, sticky='w', columnspan=1)
