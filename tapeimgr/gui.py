@@ -14,11 +14,13 @@ import threading
 import logging
 import queue
 import uuid
+from pathlib import Path
 import tkinter as tk
 from tkinter import filedialog as tkFileDialog
 from tkinter import scrolledtext as ScrolledText
 from tkinter import messagebox as tkMessageBox
 from tkinter import ttk
+from tkfilebrowser import askopendirname
 from .tape import Tape
 from . import config
 
@@ -136,7 +138,7 @@ class tapeimgrGUI(tk.Frame):
     def selectOutputDirectory(self, event=None):
         """Select output directory"""
         dirInit = self.tape.dirOut
-        self.tape.dirOut = tkFileDialog.askdirectory(initialdir=dirInit)
+        self.tape.dirOut = askopendirname(initialdir=dirInit)
         self.outDirLabel['text'] = self.tape.dirOut
 
     def decreaseBlocksize(self):
@@ -300,17 +302,14 @@ class tapeimgrGUI(tk.Frame):
                    "Run '(sudo) tapeimgr-config' to fix this.")
             errorExit(msg)
 
-    def reset_gui(self):
+    def reset_gui(self, dirOut):
         """Reset the GUI"""
         # Create new tape instance
         self.tape = Tape()
         # Read configuration
         self.tape.getConfiguration()
-        # Set dirOut, depending on whether value from config is a directory
-        if os.path.isdir(self.tape.defaultDir):
-            self.tape.dirOut = self.tape.defaultDir
-        else:
-            self.tape.dirOut = os.path.expanduser("~")
+        # Set dirOut
+        self.tape.dirOut = dirOut
         # Logging stuff
         self.logger = logging.getLogger()
         # Create a logging handler using a queue
@@ -444,8 +443,11 @@ def main():
                            'check log file for details')
                     tkMessageBox.showwarning("Errors occurred", msg)
 
+                # Reset dirOut to parent dir of current value (returns root 
+                # dir if dirOut is root)
+                dirOutNew = str(Path(myGUI.tape.dirOut).parent)
                 # Reset the GUI
-                myGUI.reset_gui()
+                myGUI.reset_gui(dirOutNew)
 
         except Exception as e:
             # Unexpected error
