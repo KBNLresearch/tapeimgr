@@ -70,7 +70,7 @@ class tapeimgrGUI(tk.Frame):
         self.tape.prefix = self.prefix_entry.get().strip()
         self.tape.extension = self.extension_entry.get().strip()
         self.tape.identifier = self.identifier_entry.get().strip()
-        self.tape.description = self.description_entry.get(1.0, tk.END).strip()
+        self.tape.description = self.description_entry.get().strip()
         self.tape.notes = self.notes_entry.get(1.0, tk.END).strip()
         self.tape.fillBlocks = self.fBlocks.get()
 
@@ -266,7 +266,7 @@ class tapeimgrGUI(tk.Frame):
 
         # Description entry field
         tk.Label(self, text='Description').grid(column=0, row=14, sticky='w')
-        self.description_entry = tk.Text(self, height=2, width=35)
+        self.description_entry = tk.Entry(self, height=2, width=35)
         self.description_entry['background'] = 'white'
         self.description_entry.insert(tk.END, self.tape.description)
         self.description_entry.grid(column=1, row=14, sticky='w', columnspan=1)
@@ -359,7 +359,7 @@ class tapeimgrGUI(tk.Frame):
         self.extension_entry.insert(tk.END, self.tape.extension)
         self.identifier_entry.delete(0, tk.END)
         self.identifier_entry.insert(tk.END, self.tape.identifier)
-        self.description_entry.delete(1.0, tk.END)
+        self.description_entry.delete(0, tk.END)
         self.description_entry.insert(tk.END, self.tape.description)
         self.notes_entry.delete(1.0, tk.END)
         self.notes_entry.insert(tk.END, self.tape.notes)
