@@ -126,7 +126,20 @@ class tapeimgrGUI(tk.Frame):
                 successLogger = False
 
             if successLogger:
-                # Disable start and exit buttons
+                # Disable data entry widgets
+                self.outDirButton_entry.config(state='disabled')
+                self.tapeDevice_entry.config(state='disabled')
+                self.initBlockSize_entry.config(state='disabled')
+                self.decreaseBSButton.config(state='disabled')
+                self.increaseBSButton.config(state='disabled')
+                self.files_entry.config(state='disabled')
+                self.prefix_entry.config(state='disabled')
+                self.extension_entry.config(state='disabled')
+                self.fillblocks_entry.config(state='disabled')
+                self.identifier_entry.config(state='disabled')
+                self.uuidButton.config(state='disabled')
+                self.description_entry.config(state='disabled')
+                self.notes_entry.config(state='disabled')
                 self.start_button.config(state='disabled')
                 self.quit_button.config(state='disabled')
 
@@ -316,6 +329,22 @@ class tapeimgrGUI(tk.Frame):
         # Create a logging handler using a queue
         self.log_queue = queue.Queue(-1)
         self.queue_handler = QueueHandler(self.log_queue)
+        # enable data entry widgets
+        self.outDirButton_entry.config(state='normal')
+        self.tapeDevice_entry.config(state='normal')
+        self.initBlockSize_entry.config(state='normal')
+        self.decreaseBSButton.config(state='normal')
+        self.increaseBSButton.config(state='normal')
+        self.files_entry.config(state='normal')
+        self.prefix_entry.config(state='normal')
+        self.extension_entry.config(state='normal')
+        self.fillblocks_entry.config(state='normal')
+        self.identifier_entry.config(state='normal')
+        self.uuidButton.config(state='normal')
+        self.description_entry.config(state='normal')
+        self.notes_entry.config(state='normal')
+        self.start_button.config(state='normal')
+        self.quit_button.config(state='normal')
         # Reset all entry widgets
         self.outDirLabel['text'] = self.tape.dirOut
         self.tapeDevice_entry.delete(0, tk.END)
