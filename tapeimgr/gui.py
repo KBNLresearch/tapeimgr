@@ -235,8 +235,9 @@ class tapeimgrGUI(tk.Frame):
 
         # Fill failed blocks
         tk.Label(self, text='Fill failed blocks').grid(column=0, row=11, sticky='w')
-        self.fBlocks = tk.IntVar()
-        self.fillblocks_entry = tk.Checkbutton(self, variable=self.tape.fillBlocks)
+        self.fBlocks = tk.BooleanVar()
+        self.fBlocks.set(self.tape.fillBlocks)
+        self.fillblocks_entry = tk.Checkbutton(self, variable=self.fBlocks)
         self.fillblocks_entry.grid(column=1, row=11, sticky='w')
 
         ttk.Separator(self, orient='horizontal').grid(column=0, row=12, columnspan=4, sticky='ew')
