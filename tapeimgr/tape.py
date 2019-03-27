@@ -85,7 +85,7 @@ class Tape:
                 self.initBlockSizeDefault = self.initBlockSize
                 self.prefix = configDict['prefix']
                 self.extension = configDict['extension']
-                self.fillBlocks = bool(configDict['fillBlocks'])
+                self.fillBlocks = configDict['fillBlocks']
                 self.timeZone = configDict['timeZone']
                 self.defaultDir = configDict['defaultDir']
             except KeyError:
@@ -145,7 +145,7 @@ class Tape:
                 self.filesIsValid = False
 
         # Convert fillBlocks to Boolean
-        self.fillBlocks = bool(self.fillBlocks)
+        self.fillBlocks = bool(self.fillBlocks == "True")
 
         # Log file
         self.logFile = os.path.join(self.dirOut, self.logFileName)

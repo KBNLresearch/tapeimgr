@@ -152,7 +152,8 @@ class tapeimgrGUI(tk.Frame):
         """Select output directory"""
         dirInit = self.tape.dirOut
         self.tape.dirOut = askopendirname(initialdir=dirInit)
-        self.outDirLabel['text'] = self.tape.dirOut
+        if self.tape.dirOut != '':
+            self.outDirLabel['text'] = self.tape.dirOut
 
     def decreaseBlocksize(self):
         """Decrease value of initBlockSize"""
