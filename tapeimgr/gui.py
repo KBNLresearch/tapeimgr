@@ -53,11 +53,11 @@ class tapeimgrGUI(tk.Frame):
         # Build the GUI
         self.build_gui()
 
-    def on_quit(self):
+    def on_quit(self, event=None):
         """Quit tapeimgr"""
         os._exit(0)
 
-    def on_submit(self):
+    def on_submit(self, event=None):
         """fetch and validate entered input, and start processing"""
 
         # This flag is true if all input validates
@@ -177,7 +177,7 @@ class tapeimgrGUI(tk.Frame):
         self.initBlockSize_entry.delete(0, tk.END)
         self.initBlockSize_entry.insert(tk.END, str(blockSizeNew))
 
-    def insertUUID(self):
+    def insertUUID(self, event=None):
         """Insert UUID into identifier field"""
         myID = str(uuid.uuid1())
         self.identifier_entry.delete(0, tk.END)
@@ -199,6 +199,7 @@ class tapeimgrGUI(tk.Frame):
         # Output Directory
         self.outDirButton_entry = tk.Button(self,
                                             text='Select Output Directory',
+                                            underline=14,
                                             command=self.selectOutputDirectory,
                                             width=20)
         self.outDirButton_entry.grid(column=0, row=3, sticky='w')
@@ -262,7 +263,8 @@ class tapeimgrGUI(tk.Frame):
         self.identifier_entry['background'] = 'white'
         self.identifier_entry.insert(tk.END, self.tape.identifier)
         self.identifier_entry.grid(column=1, row=13, sticky='w')
-        self.uuidButton = tk.Button(self, text='UUID', command=self.insertUUID, width=2)
+        self.uuidButton = tk.Button(self, text='UUID', underline=0,
+                                    command=self.insertUUID, width=2)
         self.uuidButton.grid(column=1, row=13, sticky='e')
 
         # Description entry field
@@ -307,6 +309,7 @@ class tapeimgrGUI(tk.Frame):
         self.root.bind_all('<Control-Key-d>', self.selectOutputDirectory)
         self.root.bind_all('<Control-Key-s>', self.on_submit)
         self.root.bind_all('<Control-Key-e>', self.on_quit)
+        self.root.bind_all('<Control-Key-u>', self.insertUUID)
 
         for child in self.winfo_children():
             child.grid_configure(padx=5, pady=5)
